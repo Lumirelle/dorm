@@ -58,7 +58,7 @@ public class AccessController {
     private SecurityUtils securityUtils;
 
     @RequestMapping("/access/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'TEACHER', 'SUPERVISOR')")
     public String listAccess(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,

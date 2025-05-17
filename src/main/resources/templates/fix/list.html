@@ -283,6 +283,7 @@
                         <div class="invoice-btn">
                           <!-- Button trigger modal -->
                           <a
+                            sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
                             type="button"
                             class="btn btn-primary"
                             data-bs-toggle="modal"
@@ -308,8 +309,8 @@
                             </svg>
                           </a>
 
-                          <button class="btn btn-info" type="button" id="selectAll">批量选择</button>
-                          <button class="btn btn-danger" type="button" id="batchDelete">批量撤销</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-danger" type="button" id="batchDelete">批量撤销</button>
                         </div>
                       </div>
                     </div>
@@ -373,12 +374,13 @@
                                 <td>
                                   <div class="d-flex">
                                     <a
-                                      sec:authorize="hasRole('ADMIN')"
+                                      sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
                                       th:href="@{'/fix/update/'+${fix.id}}"
                                       class="btn btn-primary shadow btn-xs sharp me-1"
                                       ><i class="fas fa-pencil-alt"></i
                                     ></a>
                                     <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
                                       th:if="${fix.status.name == 'WAIT_FOR_RECEIVE'}"
                                       th:href="@{'/api/fix/cancel/'+${fix.id}}"
                                       class="btn btn-danger shadow btn-xs sharp"
@@ -452,13 +454,13 @@
           <form enctype="multipart/form-data" method="post" th:action="@{/api/fix/add}">
             <div class="modal-content">
               <div class="modal-header">
-                <h1 sec:authorize="hasRole('ADMIN')" class="modal-title fs-5" id="exampleModalLabel">添加报修</h1>
+                <h1 sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')" class="modal-title fs-5" id="exampleModalLabel">添加报修</h1>
                 <h1 sec:authorize="hasRole('STUDENT')" class="modal-title fs-5" id="exampleModalLabel">申请报修</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <!-- 管理员可以选择宿舍 -->
-                <div sec:authorize="hasRole('ADMIN')" class="mb-3 d-block">
+                <div sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')" class="mb-3 d-block">
                   <label class="form-label d-block mb-2">宿舍</label>
                   <select class="w-100" aria-label="Default select example" name="dormId" required>
                     <option value="">请选择</option>

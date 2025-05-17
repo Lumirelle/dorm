@@ -41,7 +41,7 @@ public class BandwidthController {
     private TelephoneCardService telephoneCardService;
 
     @RequestMapping("/bandwidth/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'CARD_MANAGER')")
     public String showBandwidthListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -92,7 +92,7 @@ public class BandwidthController {
     }
 
     @RequestMapping("/api/bandwidth/add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String addBandwidth(
         @ModelAttribute @Validated AddBandwidthDTO bandwidthDTO,
         BindingResult bindingResult,
@@ -113,6 +113,14 @@ public class BandwidthController {
             return url;
         }
 
+        // 电话卡已有宽带
+        BandwidthPO oldBandwidth = bandwidthService.getOne(new UpdateWrapper<BandwidthPO>()
+            .eq("telephone_card_id", telephoneCardPO.getId()));
+        if (oldBandwidth != null) {
+            redirectAttributes.addFlashAttribute("msg", "电话卡已有宽带");
+            return url;
+        }
+
         BandwidthPO bandwidthPO = BandwidthPO.valueOf(bandwidthDTO);
         bandwidthService.save(bandwidthPO);
 
@@ -120,7 +128,7 @@ public class BandwidthController {
     }
 
     @RequestMapping("/bandwidth/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String showBandwidthUpdatePage(
         @PathVariable Integer id,
         RedirectAttributes redirectAttributes,
@@ -147,7 +155,7 @@ public class BandwidthController {
 
 
     @RequestMapping("/api/bandwidth/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String updateBandwidth(
         @ModelAttribute @Validated UpdateBandwidthDTO bandwidthDTO,
         BindingResult bindingResult,
@@ -179,8 +187,8 @@ public class BandwidthController {
     }
 
     @RequestMapping("/api/bandwidth/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String deleteBandwidth(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
+    public String deleteBandwidth(@PathVariable Integer id) {
         bandwidthService.removeById(id);
         return "redirect:/bandwidth/list";
     }
@@ -188,7 +196,7 @@ public class BandwidthController {
     // NOTE: AJAX 删除
     @ResponseBody
     @RequestMapping("/api/bandwidth/batchDelete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String batchDeleteBandwidth(@RequestParam String idList) {
         List<Integer> list = IdListUtils.convertToIntegerList(idList);
         if (bandwidthService.removeBatchByIds(list)) {

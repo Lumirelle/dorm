@@ -31,6 +31,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Controller
 public class MoveController {
     @Resource
@@ -341,6 +343,7 @@ public class MoveController {
                 fromDorm.decreaseSetting();
                 fromDorm.setStatus(DormStatus.FREE);
                 dormService.updateById(fromDorm);
+                log.info("学生搬迁存在来源宿舍，ID： {}。宿舍人数减少，当前人数：{}", fromDorm.getId(), fromDorm.getSetting());
             }
 
             DormPO toDorm = dormService.getById(oldMove.getToDormId());
@@ -350,11 +353,17 @@ public class MoveController {
                     toDorm.setStatus(DormStatus.FULL);
                 }
                 dormService.updateById(toDorm);
+                log.info("学生搬迁存在去往宿舍，ID： {}。宿舍人数增加，当前人数：{}", toDorm.getId(), toDorm.getSetting());
             }
 
             // 更新学生状态
-            studentPO.setDormId(oldMove.getToDormId());
-            studentService.updateById(studentPO);
+            UpdateWrapper<StudentPO> uwStudent = new UpdateWrapper<>();
+            uwStudent.eq("id", oldMove.getStudentId());
+            uwStudent.set("dorm_id", oldMove.getToDormId());
+            studentService.update(uwStudent);
+
+            StudentPO updateResult = studentService.getById(oldMove.getStudentId());
+            log.info("学生搬迁成功，更新学生宿舍 ID： {} -> {}", oldMove.getFromDormId(), updateResult.getDormId());
         }
 
         return successUrl;

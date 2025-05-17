@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="en">
-  <html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -282,7 +281,7 @@
 
                         <div class="invoice-btn">
                           <!-- Button trigger modal -->
-                          <a type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                          <a sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
                             >办理校园电话卡
                             <svg
                               width="22"
@@ -302,8 +301,8 @@
                             </svg>
                           </a>
 
-                          <button class="btn btn-info" type="button" id="selectAll">批量选择</button>
-                          <button class="btn btn-danger" type="button" id="batchDelete">批量注销</button>
+                          <button  sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
+                          <button  sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')" class="btn btn-danger" type="button" id="batchDelete">批量注销</button>
                         </div>
                       </div>
                     </div>
@@ -359,11 +358,13 @@
                                 <td>
                                   <div class="d-flex">
                                     <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                                       th:href="@{'/telephone-card/update/'+${telephoneCard.id}}"
                                       class="btn btn-primary shadow btn-xs sharp me-1"
                                       ><i class="fas fa-pencil-alt"></i
                                     ></a>
                                     <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                                       th:href="@{'/api/telephone-card/cancel/'+${telephoneCard.id}}"
                                       class="btn btn-danger shadow btn-xs sharp"
                                       ><i class="fa fa-ban"></i
@@ -480,7 +481,7 @@
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">赠送宽带</label>
-                  <select name="withBandwidth" id="withBandwidth" class="form-control w-100 mb-0">
+                  <select name="isGiveBandwidth" id="isGiveBandwidth" class="form-control w-100 mb-0">
                     <option value="">请选择</option>
                     <option value="true">是</option>
                     <option value="false">否</option>
@@ -551,7 +552,7 @@
           })
 
           // 切换赠送宽带
-          $('#withBandwidth').on('change', function () {
+          $('#isGiveBandwidth').on('change', function () {
             if ($(this).val() == 'true') {
               $('#bandwidthSpeedDiv').show()
               $('#bandwidthSpeed').removeAttr('disabled')
@@ -599,4 +600,3 @@
       </script>
     </body>
   </html>
-</html>

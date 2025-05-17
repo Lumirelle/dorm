@@ -280,28 +280,28 @@
                             <select class="form-control" name="status" required>
                               <option
                                 value="WAIT_FOR_RECEIVE"
-                                sec:authorize="hasRole('ADMIN')"
+                                sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
                                 th:selected="${fix.status.name eq 'WAIT_FOR_RECEIVE'}"
                               >
                                 待接收
                               </option>
                               <option
                                 value="RECEIVED"
-                                sec:authorize="hasRole('ADMIN')"
+                                sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
                                 th:selected="${fix.status.name eq 'RECEIVED'}"
                               >
                                 已接收
                               </option>
                               <option
                                 value="PROCESSED"
-                                sec:authorize="hasRole('ADMIN')"
+                                sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
                                 th:selected="${fix.status.name eq 'PROCESSED'}"
                               >
                                 已处理
                               </option>
                               <option
                                 value="UNPROCESSABLE"
-                                sec:authorize="hasRole('ADMIN')"
+                                sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
                                 th:selected="${fix.status.name eq 'UNPROCESSABLE'}"
                               >
                                 无法处理
@@ -329,7 +329,7 @@
                               </a>
                             </div>
                           </div>
-                          <div class="mb-3">
+                          <div sec:authorize="hasAnyRole('ADMIN')" class="mb-3">
                             <label class="form-label">新图片</label>
                             <input type="file" accept="image/*" class="form-control" name="file" required />
                           </div>

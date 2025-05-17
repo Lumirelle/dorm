@@ -59,7 +59,7 @@ public class FixController {
     private StudentService studentService;
 
     @RequestMapping("/fix/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'SERVICEMAN')")
     public String showFixListPage(
         @RequestParam(value = "pageNum", defaultValue = "1", required = false) Integer pageNum,
         @RequestParam(value = "pageSize", defaultValue = "15", required = false) Integer pageSize,
@@ -89,8 +89,8 @@ public class FixController {
             // 设置报修信息
             DormPO dormPO = dormService.getById(fixPO.getDormId());
             // 构造 FixVO 信息
-            FixVO student = FixVO.valueOf(fixPO, dormPO);
-            fixes.add(student);
+            FixVO fix = FixVO.valueOf(fixPO, dormPO);
+            fixes.add(fix);
         }
 
         UserVO user = securityUtils.getCurrentUser();
@@ -116,7 +116,7 @@ public class FixController {
         model.addAttribute("description", fixDTO.getDescription());
 
         // FIXME: 额外的宿舍信息，用来在添加保修时使用
-        if (user.getRole() == UserRoles.ADMIN) {
+        if (user.getRole() == UserRoles.ADMIN || user.getRole() == UserRoles.SERVICEMAN) {
             List<DormVO> dorms = DormVO.valuesOf(dormService.list());
             model.addAttribute("dorms", dorms);
         } else if (user.getRole() == UserRoles.STUDENT) {
@@ -159,7 +159,7 @@ public class FixController {
     }
 
     @RequestMapping("/fix/update/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SERVICEMAN')")
     public String showFixUpdatePage(@PathVariable Integer id, RedirectAttributes redirectAttributes, Model model) {
         String notExistUrl = "redirect:/fix/list";
 
@@ -171,18 +171,20 @@ public class FixController {
             return notExistUrl;
         }
 
-        FixVO fix = FixVO.valueOf(fixPO);
+        // 获取宿舍信息
+        DormPO dormPO = dormService.getById(fixPO.getDormId());
+        FixVO fix = FixVO.valueOf(fixPO, dormPO);
         model.addAttribute("fix", fix);
 
         return "fix/update";
     }
 
     @RequestMapping("/api/fix/update")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SERVICEMAN')")
     public String updateFix(
         @ModelAttribute @Validated UpdateFixDTO fixDTO,
         BindingResult bindingResult,
-        @RequestParam MultipartFile file,
+        @RequestParam(required = false) MultipartFile file,
         RedirectAttributes redirectAttributes
     ) {
         String successUrl = "redirect:/fix/list";
@@ -206,7 +208,9 @@ public class FixController {
             UpdateWrapper<FixPO> uw = new UpdateWrapper<>();
             uw.eq("id", fixDTO.getId());
             uw.set("description", fixDTO.getDescription());
-            uw.set("image", uploadUtils.uploadFile(file));
+            if (securityUtils.getCurrentUser().getRole() == UserRoles.STUDENT) {
+                uw.set("image", uploadUtils.uploadFile(file));
+            }
             uw.set("status", fixDTO.getStatus());
             // 设置更新时间
             uw.set("update_time", new DateTime());

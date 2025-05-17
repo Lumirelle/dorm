@@ -68,7 +68,7 @@ public class AllInOneCardController {
     private SecurityUtils securityUtils;
 
     @RequestMapping("/all-in-one-card/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'CARD_MANAGER')")
     public String showAllInOneCardListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,

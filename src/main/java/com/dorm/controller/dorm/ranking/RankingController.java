@@ -49,13 +49,12 @@ public class RankingController {
     private StudentService studentService;
 
     @RequestMapping("/ranking/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'SUPERVISOR')")
     public String showDormRankingListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
         QueryRankingDTO rankingDTO,
-        Model model,
-        HttpSession session
+        Model model
     ) {
         // 分页
         if (pageNum < 0) {
@@ -66,7 +65,9 @@ public class RankingController {
         }
         List<RankingPO> rankingPOList;
         try (Page<RankingPO> ignored = PageHelper.startPage(pageNum, pageSize)) {
-            rankingPOList = rankingService.list();
+            QueryWrapper<RankingPO> qw = new QueryWrapper<>();
+            qw.orderByDesc("create_time");
+            rankingPOList = rankingService.list(qw);
         }
 
         // 处理 RankingPO -> RankingVO
@@ -111,7 +112,7 @@ public class RankingController {
     }
 
     @RequestMapping("/api/ranking/add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public String addDormRanking(
         @ModelAttribute @Validated AddRankingDTO rankingDTO,
         BindingResult bindingResult,
