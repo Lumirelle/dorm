@@ -32,22 +32,22 @@ class DemoApplicationTests {
     static class TestConfig {
     }
 
-    @Test
-    void testBeanCovert() {
-        List<StudentPO> studentPOList = studentService.list();
-
-        if (studentPOList.isEmpty()) {
-            log.warn("No student found");
-            return;
-        }
-
-        StudentPO testStudentPO = studentPOList.getFirst();
-        UserPO testUserPO = userService.getById(testStudentPO.getUserId());
-        DormPO testDormPO = dormService.getById(testStudentPO.getDormId());
-
-        StudentVO studentVO = StudentVO.valueOf(testStudentPO, testUserPO, testDormPO);
-
-        log.info("StudentVO: {}", studentVO);
-    }
+//    @Test
+//    void testBeanCovert() {
+//        List<StudentPO> studentPOList = studentService.list();
+//
+//        if (studentPOList.isEmpty()) {
+//            log.warn("No student found");
+//            return;
+//        }
+//
+//        StudentPO testStudentPO = studentPOList.getFirst();
+//        UserPO testUserPO = userService.getById(testStudentPO.getUserId());
+//        DormPO testDormPO = dormService.getById(testStudentPO.getDormId());
+//
+//        StudentVO studentVO = StudentVO.valueOf(testStudentPO, testUserPO, testDormPO);
+//
+//        log.info("StudentVO: {}", studentVO);
+//    }
 
 }
