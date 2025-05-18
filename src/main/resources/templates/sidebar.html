@@ -528,7 +528,7 @@
 
   <!-- 教师侧边栏 -->
   <!--  辅导员-->
-  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.teacherType?.name eq 'INSTRUCTOR'}" th:fragment="sidebar">
+  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}" th:fragment="sidebar">
     <div class="deznav-scroll">
       <ul class="metismenu" id="menu">
         <!-- 主页 -->
@@ -740,7 +740,7 @@
     </div>
   </div>
   <!--  学办-->
-  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.teacherType?.name eq 'OFFICE'}" th:fragment="sidebar">
+  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'OFFICE'}" th:fragment="sidebar">
     <div class="deznav-scroll">
       <ul class="metismenu" id="menu">
         <!-- 主页 -->
@@ -919,7 +919,7 @@
     </div>
   </div>
   <!--  学工部-->
-  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.teacherType?.name eq 'AFFAIRS'}" th:fragment="sidebar">
+  <div class="deznav" sec:authorize="hasRole('TEACHER')" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'AFFAIRS'}" th:fragment="sidebar">
     <div class="deznav-scroll">
       <ul class="metismenu" id="menu">
         <!-- 主页 -->
