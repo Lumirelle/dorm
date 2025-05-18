@@ -54,7 +54,7 @@ public class TelephoneCardController {
     private BandwidthService bandwidthService;
 
     @RequestMapping("/telephone-card/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'CARD_MANAGER')")
     public String showTelephoneCardListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -102,7 +102,7 @@ public class TelephoneCardController {
     }
 
     @RequestMapping("/api/telephone-card/add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String addTelephoneCard(
         @ModelAttribute @Validated AddTelephoneCardDTO telephoneCardDTO,
         BindingResult bindingResult,
@@ -128,11 +128,23 @@ public class TelephoneCardController {
         telephoneCardPO.setCreateTime(new Date());
         telephoneCardService.save(telephoneCardPO);
 
+        if (telephoneCardDTO.getIsGiveBandwidth()) {
+            if (telephoneCardDTO.getBandwidthSpeed() == null) {
+                redirectAttributes.addFlashAttribute("msg", "宽带速度不能为空");
+                return url;
+            }
+
+            BandwidthPO bandwidthPO = new BandwidthPO();
+            bandwidthPO.setTelephoneCardId(telephoneCardPO.getId());
+            bandwidthPO.setSpeed(telephoneCardDTO.getBandwidthSpeed());
+            bandwidthService.save(bandwidthPO);
+        }
+
         return url;
     }
 
     @RequestMapping("/telephone-card/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String showTelephoneCardUpdatePage(
         @PathVariable Integer id,
         RedirectAttributes redirectAttributes,
@@ -160,7 +172,7 @@ public class TelephoneCardController {
 
 
     @RequestMapping("/api/telephone-card/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String updateStudent(
         @ModelAttribute @Validated UpdateTelephoneCardDTO telephoneCardDTO,
         BindingResult bindingResult,
@@ -192,7 +204,7 @@ public class TelephoneCardController {
     }
 
     @RequestMapping("/api/telephone-card/cancel/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String cancelTelephoneCard(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         String url = "redirect:/telephone-card/list";
 
@@ -220,7 +232,7 @@ public class TelephoneCardController {
     // NOTE: AJAX 注销
     @ResponseBody
     @RequestMapping("/api/telephone-card/batchCancel")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CARD_MANAGER')")
     public String batchCancelTelephoneCard(@RequestParam String idList) {
         List<Integer> list = IdListUtils.convertToIntegerList(idList);
 

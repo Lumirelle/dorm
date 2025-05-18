@@ -49,7 +49,7 @@ public class DormController {
     private UserService userService;
 
     @RequestMapping("/dorm/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public String showDormListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -89,7 +89,7 @@ public class DormController {
     }
 
     @RequestMapping("/dorm/detail/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public String dormDetail(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         String notExistUrl = "redirect:/dorm/list";
 

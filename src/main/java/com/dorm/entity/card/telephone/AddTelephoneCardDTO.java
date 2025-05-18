@@ -25,4 +25,9 @@ public class AddTelephoneCardDTO {
     @NotNull(message = "套餐运营商不能为空")
     private TelephoneCardOperator operator;
 
+    @NotNull(message = "是否赠送宽带选项不能为空")
+    private Boolean isGiveBandwidth;
+
+    private Integer bandwidthSpeed;
+
 }

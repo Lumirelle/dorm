@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="en">
-  <html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -296,6 +295,7 @@
                           <ul class="nav nav-tabs dzm-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                               <a
+                                sec:authorize="hasAnyRole('ADMIN')"
                                 th:href="@{ '/api/board/delete/' + ${board.id} }"
                                 class="nav-link active"
                                 type="button"
@@ -394,4 +394,3 @@
       </script>
     </body>
   </html>
-</html>

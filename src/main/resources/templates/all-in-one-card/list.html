@@ -283,7 +283,7 @@
                         <div class="invoice-btn">
                           <!-- Button trigger modal -->
                           <a
-                            sec:authorize="hasAnyRole('ADMIN')"
+                            sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                             type="button"
                             class="btn btn-primary"
                             data-bs-toggle="modal"
@@ -307,11 +307,11 @@
                             </svg>
                           </a>
 
-                          <button sec:authorize="hasAnyRole('ADMIN')" class="btn btn-info" type="button" id="selectAll">
+                          <button sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')" class="btn btn-info" type="button" id="selectAll">
                             批量选择
                           </button>
                           <button
-                            sec:authorize="hasAnyRole('ADMIN')"
+                            sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                             class="btn btn-danger"
                             type="button"
                             id="batchDelete"
@@ -375,19 +375,19 @@
                                 <td>
                                   <div class="d-flex">
                                     <a
-                                      sec:authorize="hasAnyRole('ADMIN')"
+                                      sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                                       th:href="@{'/all-in-one-card/recharge/'+${allInOneCard.id}}"
                                       class="btn btn-primary shadow btn-xs sharp me-1"
                                       ><i class="fa fa-bolt-lightning"></i
                                     ></a>
                                     <a
-                                      sec:authorize="hasAnyRole('ADMIN')"
+                                      sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                                       th:href="@{'/all-in-one-card/consume/'+${allInOneCard.id}}"
                                       class="btn btn-warning shadow btn-xs sharp me-1"
                                       ><i class="fa fa-shopping-cart"></i
                                     ></a>
                                     <a
-                                      sec:authorize="hasAnyRole('ADMIN')"
+                                      sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
                                       th:href="@{'/api/all-in-one-card/withdraw/'+${allInOneCard.id}}"
                                       class="btn btn-danger shadow btn-xs sharp"
                                       ><i class="fa fa-ban"></i
@@ -456,7 +456,7 @@
 
       <!-- Modal 1 -->
       <div
-        sec:authorize="hasAnyRole('ADMIN')"
+        sec:authorize="hasAnyRole('ADMIN', 'CARD_MANAGER')"
         class="modal fade"
         id="exampleModal"
         tabindex="-1"
@@ -480,11 +480,11 @@
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">密码</label>
-                  <input type="text" class="form-control w-100 mb-0" name="password" required />
+                  <input type="password" class="form-control w-100 mb-0" name="password" required />
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">确认密码</label>
-                  <input type="text" class="form-control w-100 mb-0" name="confirmPassword" required />
+                  <input type="password" class="form-control w-100 mb-0" name="confirmPassword" required />
                 </div>
               </div>
               <div class="modal-footer">

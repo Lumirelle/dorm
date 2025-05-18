@@ -2,6 +2,7 @@ package com.dorm.controller.user.student;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.dorm.entity.user.teacher.TeacherPO;
 import com.dorm.enums.dorm.DormStatus;
 import com.dorm.entity.dorm.DormPO;
 import com.dorm.entity.dorm.DormVO;
@@ -12,16 +13,21 @@ import com.dorm.entity.user.student.QueryStudentDTO;
 import com.dorm.entity.user.student.StudentPO;
 import com.dorm.entity.user.student.StudentVO;
 import com.dorm.entity.user.student.UpdateStudentDTO;
+import com.dorm.enums.user.UserRoles;
+import com.dorm.enums.user.teacher.TeacherType;
 import com.dorm.service.dorm.DormService;
 import com.dorm.service.user.student.StudentService;
 import com.dorm.service.user.UserService;
+import com.dorm.service.user.teacher.TeacherService;
 import com.dorm.utils.IdListUtils;
+import com.dorm.utils.SecurityUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -50,9 +56,13 @@ public class StudentController {
 
     @Resource
     private UserService userService;
+    @Autowired
+    private SecurityUtils securityUtils;
+    @Autowired
+    private TeacherService teacherService;
 
     @RequestMapping("/student/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String showStudentListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -108,7 +118,7 @@ public class StudentController {
     }
 
     @RequestMapping("/api/student/add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String addStudent(
         @ModelAttribute @Validated AddStudentDTO studentDTO,
         BindingResult bindingResult,
@@ -120,6 +130,17 @@ public class StudentController {
         if (bindingResult.hasErrors() && bindingResult.getFieldError() != null) {
             redirectAttributes.addFlashAttribute("msg", bindingResult.getFieldError().getDefaultMessage());
             return url;
+        }
+
+        // 如果是教师，只有学工部可以操作
+        if (securityUtils.getCurrentUser().getRole() == UserRoles.TEACHER) {
+            QueryWrapper<TeacherPO> qw = new QueryWrapper<>();
+            qw.eq("user_id", securityUtils.getCurrentUser().getId());
+            TeacherPO teacherPO = teacherService.getOne(qw);
+            if (teacherPO == null || teacherPO.getTeacherType() != TeacherType.AFFAIRS) {
+                redirectAttributes.addFlashAttribute("msg", "无操作权限！");
+                return url;
+            }
         }
 
         // 学号检验
@@ -158,9 +179,20 @@ public class StudentController {
     }
 
     @RequestMapping("/student/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String showStudentUpdatePage(@PathVariable Integer id, RedirectAttributes redirectAttributes, Model model) {
         String notExistUrl = "redirect:/student/list";
+
+        // 如果是教师，只有学工部可以操作
+        if (securityUtils.getCurrentUser().getRole() == UserRoles.TEACHER) {
+            QueryWrapper<TeacherPO> qw = new QueryWrapper<>();
+            qw.eq("user_id", securityUtils.getCurrentUser().getId());
+            TeacherPO teacherPO = teacherService.getOne(qw);
+            if (teacherPO == null || teacherPO.getTeacherType() != TeacherType.AFFAIRS) {
+                redirectAttributes.addFlashAttribute("msg", "无操作权限！");
+                return notExistUrl;
+            }
+        }
 
         // 获取学生信息
         StudentPO studentPO = studentService.getById(id);
@@ -198,7 +230,7 @@ public class StudentController {
 
 
     @RequestMapping("/api/student/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String updateStudent(
         @ModelAttribute @Validated UpdateStudentDTO studentDTO,
         BindingResult bindingResult,
@@ -211,6 +243,17 @@ public class StudentController {
         if (bindingResult.hasErrors() && bindingResult.getFieldError() != null) {
             redirectAttributes.addFlashAttribute("msg", bindingResult.getFieldError().getDefaultMessage());
             return errorUrl;
+        }
+
+        // 如果是教师，只有学工部可以操作
+        if (securityUtils.getCurrentUser().getRole() == UserRoles.TEACHER) {
+            QueryWrapper<TeacherPO> qw = new QueryWrapper<>();
+            qw.eq("user_id", securityUtils.getCurrentUser().getId());
+            TeacherPO teacherPO = teacherService.getOne(qw);
+            if (teacherPO == null || teacherPO.getTeacherType() != TeacherType.AFFAIRS) {
+                redirectAttributes.addFlashAttribute("msg", "无操作权限！");
+                return errorUrl;
+            }
         }
 
         // ID 检验
@@ -275,8 +318,20 @@ public class StudentController {
     }
 
     @RequestMapping("/api/student/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String deleteStudent(@PathVariable Integer id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public String deleteStudent(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+
+        // 如果是教师，只有学工部可以操作
+        if (securityUtils.getCurrentUser().getRole() == UserRoles.TEACHER) {
+            QueryWrapper<TeacherPO> qw = new QueryWrapper<>();
+            qw.eq("user_id", securityUtils.getCurrentUser().getId());
+            TeacherPO teacherPO = teacherService.getOne(qw);
+            if (teacherPO == null || teacherPO.getTeacherType() != TeacherType.AFFAIRS) {
+                redirectAttributes.addFlashAttribute("msg", "无操作权限！");
+                return "redirect:/student/list";
+            }
+        }
+
         StudentPO studentPO = studentService.getById(id);
 
         if (studentPO == null) {
@@ -299,8 +354,18 @@ public class StudentController {
     // NOTE: AJAX 删除
     @ResponseBody
     @RequestMapping("/api/student/batchDelete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String batchDeleteStudent(@RequestParam String idList) {
+        // 如果是教师，只有学工部可以操作
+        if (securityUtils.getCurrentUser().getRole() == UserRoles.TEACHER) {
+            QueryWrapper<TeacherPO> qw = new QueryWrapper<>();
+            qw.eq("user_id", securityUtils.getCurrentUser().getId());
+            TeacherPO teacherPO = teacherService.getOne(qw);
+            if (teacherPO == null || teacherPO.getTeacherType() != TeacherType.AFFAIRS) {
+                return "无操作权限！";
+            }
+        }
+
         List<Integer> list = IdListUtils.convertToIntegerList(idList);
 
         if (studentService.isAnyIdNotExist(list)) {

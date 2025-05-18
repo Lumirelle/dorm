@@ -160,6 +160,7 @@ public class BoardController {
         BoardPO boardPO = boardService.getById(id);
 
         if (boardPO == null) {
+            redirectAttributes.addFlashAttribute("msg", "留言不存在");
             return "redirect:/board/list";
         }
 
@@ -182,7 +183,11 @@ public class BoardController {
         }
         boardService.removeById(id);
 
-        return "redirect:/board/list" + boardPO.getRootBoardId();
+        if (boardPO.getParentBoardId() != null) {
+            // 如果是回复，重定向到根留言的详情页
+            return "redirect:/board/detail/" + boardPO.getRootBoardId();
+        }
+        return "redirect:/board/list";
     }
 
 }

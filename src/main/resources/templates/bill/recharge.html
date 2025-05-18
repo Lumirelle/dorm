@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
-  <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+  <html xmlns:th="http://www.thymeleaf.org">
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="format-detection" content="telephone=no" />
-      <!-- 标题 -->
-      <title>宿舍管理 - 校区学生管理与服务系统</title>
+      <!-- 页面标题 -->
+      <title>生活缴费充值 - 校区学生管理与服务系统</title>
       <!-- 小图标 -->
       <link rel="shortcut icon" type="image/png" href="/images/favicon.png" />
       <!-- 样式 -->
@@ -31,7 +31,7 @@
       <div id="main-wrapper">
         <!--** Nav header start **-->
         <div class="nav-header">
-          <a href="/home" class="brand-logo">
+          <a href="./home" class="brand-logo">
             <div class="brand-title">
               <h1 style="width: 200px" class="mb-0">校区学生管理与服务系统</h1>
             </div>
@@ -227,199 +227,48 @@
         <!--** Header end **-->
 
         <!--** Sidebar start **-->
-        <div class="deznav" th:replace="~{/sidebar::sidebar}"></div>
+        <div class="deznav" th:replace="~{home::sidebar}"></div>
         <!--** Sidebar end **-->
 
         <!--** Content body start **-->
         <div class="content-body">
-          <!-- row -->
           <div class="container-fluid">
-            <!-- Row -->
+            <!-- row -->
             <div class="row">
-              <div class="col-xl-12">
-                <div class="row">
-                  <div class="col-xl-12">
-                    <div class="page-titles">
-                      <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                          <li class="breadcrumb-item ps-0"><a href="#">宿舍管理</a></li>
-                          <li class="breadcrumb-item active"><a href="#">宿舍列表</a></li>
-                        </ol>
-                      </nav>
-                      <div class="d-flex flex-wrap my-0 my-sm-0 py-sm-2 py-xl-0">
-                        <form id="search_form">
-                          <div class="input-group search-area">
-                            <input
-                              type="text"
-                              class="form-control"
-                              placeholder="搜索（支持名称模糊查询）..."
-                              name="noOrBuilding"
-                              th:value="${noOrBuilding}"
-                            />
-                            <span class="input-group-text"
-                              ><a onclick="document:search_form.submit();" type="button"
-                                ><svg
-                                  class="me-1 mb-1 user-search"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 18 18"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M8.625 16.3125C4.3875 16.3125 0.9375 12.8625 0.9375 8.625C0.9375 4.3875 4.3875 0.9375 8.625 0.9375C12.8625 0.9375 16.3125 4.3875 16.3125 8.625C16.3125 12.8625 12.8625 16.3125 8.625 16.3125ZM8.625 2.0625C5.0025 2.0625 2.0625 5.01 2.0625 8.625C2.0625 12.24 5.0025 15.1875 8.625 15.1875C12.2475 15.1875 15.1875 12.24 15.1875 8.625C15.1875 5.01 12.2475 2.0625 8.625 2.0625Z"
-                                    fill="#2696FD"
-                                  />
-                                  <path
-                                    d="M16.5001 17.0626C16.3576 17.0626 16.2151 17.0101 16.1026 16.8976L14.6026 15.3976C14.3851 15.1801 14.3851 14.8201 14.6026 14.6026C14.8201 14.3851 15.1801 14.3851 15.3976 14.6026L16.8976 16.1026C17.1151 16.3201 17.1151 16.6801 16.8976 16.8976C16.7851 17.0101 16.6426 17.0626 16.5001 17.0626Z"
-                                    fill="var(--primary)"
-                                  />
-                                </svg>
-                              </a>
-                            </span>
+              <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h4 class="card-title">生活缴费充值</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="basic-form">
+                      <form enctype="multipart/form-data" method="post" th:action="@{/api/bill/recharge}">
+                        <fieldset>
+                          <input type="hidden" th:value="${bill.id}" name="id" />
+                          <div class="mb-3">
+                            <label class="form-label">水费号</label>
+                            <input type="text" class="form-control" th:value="${bill.waterNo}" readonly />
                           </div>
-                        </form>
-
-                        <div class="invoice-btn">
-                          <!-- Button trigger modal -->
-                          <a sec:authorize="hasAnyRole('ADMIN')" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                            >添加宿舍
-                            <svg
-                              width="22"
-                              height="22"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M12 3C7.05 3 3 7.05 3 12C3 16.95 7.05 21 12 21C16.95 21 21 16.95 21 12C21 7.05 16.95 3 12 3ZM12 19.125C8.1 19.125 4.875 15.9 4.875 12C4.875 8.1 8.1 4.875 12 4.875C15.9 4.875 19.125 8.1 19.125 12C19.125 15.9 15.9 19.125 12 19.125Z"
-                                fill="#FCFCFC"
-                              />
-                              <path
-                                d="M16.3498 11.0251H12.9748V7.65009C12.9748 7.12509 12.5248 6.67509 11.9998 6.67509C11.4748 6.67509 11.0248 7.12509 11.0248 7.65009V11.0251H7.6498C7.1248 11.0251 6.6748 11.4751 6.6748 12.0001C6.6748 12.5251 7.1248 12.9751 7.6498 12.9751H11.0248V16.3501C11.0248 16.8751 11.4748 17.3251 11.9998 17.3251C12.5248 17.3251 12.9748 16.8751 12.9748 16.3501V12.9751H16.3498C16.8748 12.9751 17.3248 12.5251 17.3248 12.0001C17.3248 11.4751 16.8748 11.0251 16.3498 11.0251Z"
-                                fill="#FCFCFC"
-                              />
-                            </svg>
-                          </a>
-
-                          <button sec:authorize="hasAnyRole('ADMIN')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
-                          <button sec:authorize="hasAnyRole('ADMIN')" class="btn btn-danger" type="button" id="batchDelete">批量删除</button>
-                        </div>
-                      </div>
+                          <div class="mb-3">
+                            <label class="form-label">电费号</label>
+                            <input type="text" class="form-control" th:value="${bill.electricityNo}" readonly />
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">当前余额</label>
+                            <input type="text" class="form-control" th:value="${bill.amount}" readonly />
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">充值金额</label>
+                            <input type="text" class="form-control" name="changeAmount" id="amount" required />
+                          </div>
+                          <p style="color: red" th:if="${not #strings.isEmpty(msg)}" th:text="${msg}">
+                            <!--这个msg既可以是model里的，也可以是session里的-->
+                          </p>
+                          <button type="submit" class="btn btn-primary mt-3">保存</button>
+                        </fieldset>
+                      </form>
                     </div>
                   </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-lg-12">
-                    <div class="card">
-                      <div class="card-body">
-                        <div class="table-responsive">
-                          <table class="table table-responsive-md">
-                            <thead>
-                              <tr>
-                                <th>选择</th>
-                                <th>宿舍楼</th>
-                                <th>宿舍号</th>
-                                <th>已住人数</th>
-                                <th>宿舍容量</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                              </tr>
-                            </thead>
-
-                            <tbody>
-                              <tr th:each="dorm:${pageInfo.list}">
-                                <td>
-                                  <div class="form-check custom-checkbox checkbox-success check-lg me-3">
-                                    <input
-                                      th:value="${dorm.id}"
-                                      name="chkHistory"
-                                      type="checkbox"
-                                      class="form-check-input"
-                                      id="customCheckBox2"
-                                    />
-                                    <label class="form-check-label" for="customCheckBox2"></label>
-                                  </div>
-                                </td>
-
-                                <td><strong>[[${dorm.building}]]</strong></td>
-                                <td><strong>[[${dorm.no}]]</strong></td>
-                                <td><strong>[[${dorm.setting}]]</strong></td>
-                                <td><strong>[[${dorm.people}]]</strong></td>
-                                <td><strong>[[${dorm.status.description}]]</strong></td>
-                                <td>
-                                  <div class="d-flex">
-                                    <a
-                                      th:href="@{'/dorm/detail/'+${dorm.id}}"
-                                      class="btn btn-success shadow btn-xs sharp me-1"
-                                      ><i class="fas fa-eye"></i
-                                    ></a>
-                                    <a
-                                      sec:authorize="hasAnyRole('ADMIN')"
-                                      th:href="@{'/dorm/update/'+${dorm.id}}"
-                                      class="btn btn-primary shadow btn-xs sharp me-1"
-                                      ><i class="fas fa-pencil-alt"></i
-                                    ></a>
-                                    <a
-                                      sec:authorize="hasAnyRole('ADMIN')"
-                                      th:href="@{'/api/dorm/delete/'+${dorm.id}}"
-                                      class="btn btn-danger shadow btn-xs sharp"
-                                      ><i class="fa fa-trash"></i
-                                    ></a>
-                                  </div>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-
-                          <div class="card-body">
-                            <p style="color: red" th:if="${not #strings.isEmpty(msg)}" th:text="${msg}">
-                              <!--这个msg既可以是model里的，也可以是session里的-->
-                            </p>
-                            <!-- right aligned pagination-->
-                            <nav aria-label="Page navigation example">
-                              <ul class="pagination justify-content-end pagination-primary">
-                                <li th:if="!${pageInfo.hasPreviousPage}" class="page-item page-indicator disabled">
-                                  <a class="page-link" href="javascript:void(0)"> <i class="la la-angle-left"></i></a>
-                                </li>
-                                <li th:if="${pageInfo.hasPreviousPage}" class="page-item page-indicator">
-                                  <a class="page-link" th:href="'/dorm/list?pageNum='+${pageInfo.prePage}">
-                                    <i class="la la-angle-left"></i
-                                  ></a>
-                                </li>
-
-                                <li th:each="nav:${pageInfo.navigatepageNums}" class="page-item">
-                                  <a
-                                    th:if="${nav != pageInfo.pageNum}"
-                                    th:href="'/dorm/list?pageNum='+${nav}"
-                                    class="page-link"
-                                    th:text="${nav}"
-                                  ></a>
-                                  <a
-                                    th:if="${nav == pageInfo.pageNum}"
-                                    style="background-color: darkblue; color: white"
-                                    class="page-link active"
-                                    th:text="${nav}"
-                                  ></a>
-                                </li>
-
-                                <li th:if="!${pageInfo.hasNextPage}" class="page-item page-indicator disabled">
-                                  <a class="page-link" href="javascript:void(0)"> <i class="la la-angle-right"></i></a>
-                                </li>
-                                <li th:if="${pageInfo.hasNextPage}" class="page-item page-indicator">
-                                  <a class="page-link" th:href="'/dorm/list?pageNum='+${pageInfo.nextPage}">
-                                    <i class="la la-angle-right"></i
-                                  ></a>
-                                </li>
-                              </ul>
-                            </nav>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!--  -->
                 </div>
               </div>
             </div>
@@ -428,38 +277,6 @@
         <!--** Content body end **-->
       </div>
       <!--** Main wrapper end **-->
-
-      <!-- Modal -->
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <form enctype="multipart/form-data" method="post" th:action="@{/api/dorm/add}">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">添加宿舍</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">宿舍号</label>
-                  <input type="text" class="form-control w-100 mb-0" name="no" required />
-                </div>
-                <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">宿舍楼</label>
-                  <input type="text" class="form-control w-100 mb-0" name="building" required />
-                </div>
-                <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">宿舍容量</label>
-                  <input type="number" class="form-control" name="people" />
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">关闭</button>
-                <button type="submit" class="btn btn-primary">保存</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
 
       <!--** Scripts **-->
       <!-- Required vendors -->
@@ -483,40 +300,23 @@
       <script th:src="@{/js/custom.min.js}"></script>
       <script th:src="@{/js/demo-2.js}"></script>
       <script th:src="@{/js/styleSwitcher.js}"></script>
-      <!-- 批量删除 -->
       <script>
         $(function () {
-          $('#selectAll').click(function () {
-            $('input[name=chkHistory]').prop('checked', !$('input[name=chkHistory]').prop('checked'))
-          })
-
-          $('#batchDelete').click(function () {
-            let chList = $('input[name=chkHistory]:checked')
-            if (chList.length == 0) {
-              alert('请至少选择一项')
-              return
+          // 限制金额只能输入数字和小数点
+          $('#amount').on('input', function () {
+            let amount = $(this).val()
+            // 去除非数字和小数点
+            amount = amount.replace(/[^0-9.]/g, '')
+            // 如果有多个小数点，去除第二个小数点及之后的数
+            // 如果小数点后超过两位，只保留两位
+            const parts = amount.split('.')
+            if (parts.length < 2) {
+              amount = parts[0]
+            } else {
+              parts[1] = parts[1].substring(0, 2)
+              amount = parts[0] + '.' + parts[1]
             }
-            let ids = ''
-            $(chList).each(function () {
-              let id = $(this).val()
-              ids += ',' + id
-            })
-            $.ajax({
-              url: '/api/dorm/batchDelete',
-              data: {
-                idList: ids,
-                _csrf: '[[${_csrf.token}]]',
-              },
-              method: 'POST',
-              success: function (data) {
-                if (data == 'OK') {
-                  alert('批量删除成功')
-                  window.location.href = '/dorm/list'
-                } else {
-                  alert('批量删除失败')
-                }
-              },
-            })
+            $(this).val(amount)
           })
         })
       </script>

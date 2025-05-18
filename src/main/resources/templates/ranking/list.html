@@ -283,7 +283,7 @@
                         <div class="invoice-btn">
                           <!-- Button trigger modal -->
                           <a
-                            sec:authorize="hasRole('ADMIN')"
+                            sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')"
                             type="button"
                             class="btn btn-primary"
                             data-bs-toggle="modal"
@@ -320,8 +320,8 @@
                           <table class="table table-responsive-md">
                             <thead>
                               <tr>
-                                <th sec:authorize="hasRole('ADMIN')">宿舍</th>
-                                <th sec:authorize="!hasRole('ADMIN')">您的宿舍</th>
+                                <th sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')">宿舍</th>
+                                <th sec:authorize="!hasAnyRole('ADMIN', 'SUPERVISOR')">您的宿舍</th>
                                 <th>卫生评分</th>
                                 <th>美观评分</th>
                                 <th>安全评分</th>
@@ -404,7 +404,7 @@
 
       <!-- Modal -->
       <div
-        sec:authorize="hasRole('ADMIN')"
+        sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')"
         class="modal fade"
         id="exampleModal"
         tabindex="-1"
@@ -432,19 +432,19 @@
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">卫生评分</label>
-                  <input type="number" class="form-control w-100 mb-0" name="healthScore" required />
+                  <input type="number" class="form-control w-100 mb-0" name="healthScore" required placeholder="请输入分数，0<=分数<=25" />
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">美观评分</label>
-                  <input type="number" class="form-control w-100 mb-0" name="beautyScore" required />
+                  <input type="number" class="form-control w-100 mb-0" name="beautyScore" required placeholder="请输入分数，0<=分数<=25" />
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">安全评分</label>
-                  <input type="number" class="form-control w-100 mb-0" name="safetyScore" required />
+                  <input type="number" class="form-control w-100 mb-0" name="safetyScore" required placeholder="请输入分数，0<=分数<=25" />
                 </div>
                 <div class="mb-3 d-block">
                   <label class="form-label d-block mb-2">氛围评分</label>
-                  <input type="number" class="form-control w-100 mb-0" name="atmosphereScore" required />
+                  <input type="number" class="form-control w-100 mb-0" name="atmosphereScore" required placeholder="请输入分数，0<=分数<=25" />
                 </div>
               </div>
               <div class="modal-footer">

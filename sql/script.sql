@@ -10,6 +10,16 @@ create table dorm
 )
     charset = utf8mb3;
 
+create table dorm_bill
+(
+    id             int auto_increment
+        primary key,
+    water_no       varchar(20)    not null,
+    electricity_no varchar(20)    not null,
+    dorm_id        int            null,
+    amount         decimal(10, 2) null
+);
+
 create table dorm_fix
 (
     id          int auto_increment comment 'ID'

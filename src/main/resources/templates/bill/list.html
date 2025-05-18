@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <html xmlns:th="http://www.thymeleaf.org">
+  <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -253,8 +253,8 @@
                               type="text"
                               class="form-control"
                               placeholder="搜索（支持名称模糊查询）..."
-                              name="noOrBuilding"
-                              th:value="${noOrBuilding}"
+                              name="no"
+                              th:value="${no}"
                             />
                             <span class="input-group-text"
                               ><a onclick="document:search_form.submit();" type="button"
@@ -282,8 +282,8 @@
 
                         <div class="invoice-btn">
                           <!-- Button trigger modal -->
-                          <a type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                            >添加出入登记
+                          <a sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                            >添加生活缴费账户
                             <svg
                               width="22"
                               height="22"
@@ -302,8 +302,8 @@
                             </svg>
                           </a>
 
-                          <button class="btn btn-info" type="button" id="selectAll">批量选择</button>
-                          <button class="btn btn-danger" type="button" id="batchDelete">批量删除</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" class="btn btn-danger" type="button" id="batchDelete">批量删除</button>
                         </div>
                       </div>
                     </div>
@@ -319,25 +319,20 @@
                             <thead>
                               <tr>
                                 <th>选择</th>
-                                <th>类型</th>
-                                <th>原因</th>
-                                <th>来源/目的地</th>
-                                <th>时间</th>
-                                <th>学号</th>
-                                <th>姓名</th>
-                                <th>学院</th>
-                                <th>专业</th>
+                                <th>水费账单号</th>
+                                <th>电费账单号</th>
                                 <th>宿舍</th>
+                                <th>余额</th>
                                 <th>操作</th>
                               </tr>
                             </thead>
 
                             <tbody>
-                              <tr th:each="access:${pageInfo.list}">
+                              <tr th:each="bill:${pageInfo.list}">
                                 <td>
                                   <div class="form-check custom-checkbox checkbox-success check-lg me-3">
                                     <input
-                                      th:value="${access.id}"
+                                      th:value="${bill.id}"
                                       name="chkHistory"
                                       type="checkbox"
                                       class="form-check-input"
@@ -347,26 +342,39 @@
                                   </div>
                                 </td>
 
-                                <td><strong>[[${access.type.description}]]</strong></td>
-                                <td><strong>[[${access.reason}]]</strong></td>
-                                <td th:if="${access.source != null}">
-                                  <strong>[[${access.source}]]</strong>
-                                </td>
-                                <td th:if="${access.destination != null}">
-                                  <strong>[[${access.destination}]]</strong>
-                                </td>
-                                <td>
-                                  <strong>[[${#dates.format(access.createTime, 'yyyy-MM-dd HH:mm:ss')}]]</strong>
-                                </td>
-                                <td><strong>[[${access.no}]]</strong></td>
-                                <td><strong>[[${access.name}]]</strong></td>
-                                <td><strong>[[${access.college}]]</strong></td>
-                                <td><strong>[[${access.major}]]</strong></td>
-                                <td><strong>[[${access.dorm}]]</strong></td>
+                                <td><strong>[[${bill.waterNo}]]</strong></td>
+                                <td><strong>[[${bill.electricityNo}]]</strong></td>
+                                <td><strong>[[${bill.dorm}]]</strong></td>
+                                <td><strong>[[${bill.amount}]]</strong></td>
                                 <td>
                                   <div class="d-flex">
+                                    <!-- 学生充值 -->
                                     <a
-                                      th:href="@{ '/api/access/delete/' + ${access.id} }"
+                                      sec:authorize="hasAnyRole('STUDENT')"
+                                      id="studentRecharge"
+                                      data-bs-toggle="modal" data-bs-target="#rechargeModal"
+                                      class="btn btn-primary shadow btn-xs sharp me-1"
+                                      th:data-water-no="${bill.waterNo}"
+                                      th:data-electricity-no="${bill.electricityNo}"
+                                      th:data-dorm="${bill.dorm}"
+                                    ><i class="fa fa-bolt-lightning"></i
+                                    ></a>
+                                    <!-- 管理员、宿管充值 -->
+                                    <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')"
+                                      th:href="@{'/bill/recharge/'+${bill.id}}"
+                                      class="btn btn-primary shadow btn-xs sharp me-1"
+                                    ><i class="fa fa-bolt-lightning"></i
+                                    ></a>
+                                    <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')"
+                                      th:href="@{'/bill/consume/'+${bill.id}}"
+                                      class="btn btn-warning shadow btn-xs sharp me-1"
+                                    ><i class="fa fa-shopping-cart"></i
+                                    ></a>
+                                    <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')"
+                                      th:href="@{ '/api/bill/delete/' + ${bill.id} }"
                                       class="btn btn-danger shadow btn-xs sharp"
                                       ><i class="fa fa-trash"></i
                                     ></a>
@@ -387,7 +395,7 @@
                                   <a class="page-link" href="javascript:void(0)"> <i class="la la-angle-left"></i></a>
                                 </li>
                                 <li th:if="${pageInfo.hasPreviousPage}" class="page-item page-indicator">
-                                  <a class="page-link" th:href="'/access/list?pageNum='+${pageInfo.prePage}">
+                                  <a class="page-link" th:href="'/bill/list?pageNum='+${pageInfo.prePage}">
                                     <i class="la la-angle-left"></i
                                   ></a>
                                 </li>
@@ -395,7 +403,7 @@
                                 <li th:each="nav:${pageInfo.navigatepageNums}" class="page-item">
                                   <a
                                     th:if="${nav != pageInfo.pageNum}"
-                                    th:href="'/access/list?pageNum='+${nav}"
+                                    th:href="'/bill/list?pageNum='+${nav}"
                                     class="page-link"
                                     th:text="${nav}"
                                   ></a>
@@ -411,7 +419,7 @@
                                   <a class="page-link" href="javascript:void(0)"> <i class="la la-angle-right"></i></a>
                                 </li>
                                 <li th:if="${pageInfo.hasNextPage}" class="page-item page-indicator">
-                                  <a class="page-link" th:href="'/access/list?pageNum='+${pageInfo.nextPage}">
+                                  <a class="page-link" th:href="'/bill/list?pageNum='+${pageInfo.nextPage}">
                                     <i class="la la-angle-right"></i
                                   ></a>
                                 </li>
@@ -435,41 +443,27 @@
       <!-- Modal -->
       <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-          <form enctype="multipart/form-data" method="post" th:action="@{/api/access/add}">
+          <form enctype="multipart/form-data" method="post" th:action="@{/api/bill/add}">
             <div class="modal-content">
               <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">添加出入登记</h1>
+                <h1 class="modal-title fs-5" id="exampleModalLabel">添加账户</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">学生</label>
-                  <select name="studentId" class="form-control w-100 mb-0">
+                  <label class="form-label d-block mb-2">宿舍</label>
+                  <select name="dormId" class="form-control w-100 mb-0">
                     <option value="">请选择</option>
-                    <option th:each="student:${students}" th:value="${student.id}" th:text="${student.name}"></option>
+                    <option th:each="dorm:${dorms}" th:value="${dorm.id}" th:text="${dorm.building + ' ' + dorm.no}"></option>
                   </select>
                 </div>
                 <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">类型</label>
-                  <select name="type" class="form-control w-100 mb-0" id="type">
-                    <option value="">请选择</option>
-                    <option value="OUT">出校</option>
-                    <option value="IN">入校</option>
-                  </select>
+                  <label class="form-label d-block mb-2">水费账单号</label>
+                  <input type="text" class="form-control w-100 mb-0" name="waterNo" required />
                 </div>
                 <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">原因</label>
-                  <input type="text" class="form-control w-100 mb-0" name="reason" required />
-                </div>
-                <div class="mb-3 d-block">
-                  <label class="form-label d-block mb-2">来源地/目的地</label>
-                  <input
-                    type="text"
-                    class="form-control w-100 mb-0"
-                    name="sourceOrDestination"
-                    id="sourceOrDestination"
-                    required
-                  />
+                  <label class="form-label d-block mb-2">电费账单号</label>
+                  <input type="text" class="form-control w-100 mb-0" name="electricityNo" required />
                 </div>
               </div>
               <div class="modal-footer">
@@ -478,6 +472,38 @@
               </div>
             </div>
           </form>
+        </div>
+      </div>
+
+      <div class="modal fade" id="rechargeModal" tabindex="-1" aria-labelledby="rechargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="rechargeModalLabel">充值账户</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3 d-block">
+                <label class="form-label d-block mb-2">水费账单号</label>
+                <input type="text" class="form-control w-100 mb-0" id="waterNo" readonly />
+              </div>
+              <div class="mb-3 d-block">
+                <label class="form-label d-block mb-2">电费账单号</label>
+                <input type="text" class="form-control w-100 mb-0" id="electricityNo" readonly />
+              </div>
+              <div class="mb-3 d-block">
+                <label class="form-label d-block mb-2">宿舍</label>
+                <input type="text" class="form-control w-100 mb-0" id="dorm" readonly />
+              </div>
+              <div class="mb-3 d-block">
+                <label class="form-label d-block mb-2">请扫描付款码，备注宿舍</label>
+                <img src="/images/payment/payment.jpg" class="w-50">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">关闭</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -506,14 +532,10 @@
       <!-- 类型选择 & 批量删除 -->
       <script>
         $(function () {
-          $('#type').change(function () {
-            if ($(this).val() == 'OUT') {
-              $('#sourceOrDestination').attr('name', 'destination')
-            } else if ($(this).val() == 'IN') {
-              $('#sourceOrDestination').attr('name', 'source')
-            } else {
-              $('#sourceOrDestination').attr('name', 'sourceOrDestination')
-            }
+          $('#studentRecharge').click(function () {
+            $('#waterNo').val($(this).data('water-no'))
+            $('#electricityNo').val($(this).data('electricity-no'))
+            $('#dorm').val($(this).data('dorm'))
           })
 
           $('#selectAll').click(function () {
@@ -532,7 +554,7 @@
               ids += ',' + id
             })
             $.ajax({
-              url: '/api/access/batchDelete',
+              url: '/api/bill/batchDelete',
               data: {
                 idList: ids,
                 _csrf: '[[${_csrf.token}]]',
@@ -541,7 +563,7 @@
               success: function (data) {
                 if (data == 'OK') {
                   alert('批量删除成功')
-                  window.location.href = '/access/list'
+                  window.location.href = '/bill/list'
                 } else {
                   alert('批量删除失败')
                 }
