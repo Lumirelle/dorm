@@ -59,7 +59,7 @@ public class FixController {
     private StudentService studentService;
 
     @RequestMapping("/fix/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'SERVICEMAN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'SERVICEMAN', 'SUPERVISOR')")
     public String showFixListPage(
         @RequestParam(value = "pageNum", defaultValue = "1", required = false) Integer pageNum,
         @RequestParam(value = "pageSize", defaultValue = "15", required = false) Integer pageSize,

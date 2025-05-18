@@ -49,7 +49,7 @@ public class ObjectsController {
     private NoGenerateUtils noGenerateUtils;
 
     @RequestMapping("/objects/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public String showDormObjectsListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -97,7 +97,7 @@ public class ObjectsController {
     }
 
     @RequestMapping("/api/objects/add")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public String addDormObjects(
         @ModelAttribute @Validated AddObjectsDTO objectsDTO,
         BindingResult bindingResult,
