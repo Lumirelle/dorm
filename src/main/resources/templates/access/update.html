@@ -271,8 +271,8 @@
                             <select sec:authorize="hasRole('TEACHER')" class="form-control" name="status" required>
                               <option value="">请选择</option>
                               <!-- 辅导员审批 -->
-                              <option value="PASS" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}">通过</option>
-                              <option value="REJECT" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}">拒绝</option>
+                              <option value="PASS" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'INSTRUCTOR'}">通过</option>
+                              <option value="REJECT" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'INSTRUCTOR'}">拒绝</option>
                             </select>
                           </div>
                           <p style="color: red" th:if="${not #strings.isEmpty(msg)}" th:text="${msg}">

@@ -320,8 +320,8 @@
                             >
                               <!-- 辅导员审批 -->
                               <option value="">请选择</option>
-                              <option value="PASS" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}">通过</option>
-                              <option value="REJECT" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}">拒绝</option>
+                              <option value="PASS" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'INSTRUCTOR'}">通过</option>
+                              <option value="REJECT" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'INSTRUCTOR'}">拒绝</option>
                             </select>
                             <!-- 审批流程操作项 其他 -->
                             <select
@@ -333,15 +333,15 @@
                             >
                               <option value="">请选择</option>
                               <!-- 辅导员审批 -->
-                              <option value="WAIT_OFFICE_AUDIT" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'INSTRUCTOR'}">
+                              <option value="WAIT_OFFICE_AUDIT" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'INSTRUCTOR'}">
                                 通过
                               </option>
                               <!-- 学办审批 -->
-                              <option value="WAIT_AFFAIRS_AUDIT" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'OFFICE'}">
+                              <option value="WAIT_AFFAIRS_AUDIT" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'OFFICE'}">
                                 通过
                               </option>
                               <!-- 学工部审批 -->
-                              <option value="PASS" th:if="${session.user.role.name eq 'TEACHER' and session.teacherType?.name eq 'AFFAIRS'}">通过</option>
+                              <option value="PASS" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'AFFAIRS'}">通过</option>
                               <!-- 通用的拒绝状态 -->
                               <option value="REJECT">拒绝</option>
                             </select>
