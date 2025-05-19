@@ -10,7 +10,6 @@ import com.dorm.entity.dorm.move.AddMoveDTO;
 import com.dorm.entity.dorm.move.MovePO;
 import com.dorm.entity.dorm.move.MoveVO;
 import com.dorm.entity.dorm.move.QueryMoveDTO;
-import com.dorm.entity.dorm.move.UpdateMoveDTO;
 import com.dorm.entity.user.UserVO;
 import com.dorm.entity.user.student.StudentPO;
 import com.dorm.entity.user.student.StudentVO;
@@ -66,9 +65,11 @@ public class MoveController {
 
     @Resource
     private UploadUtils uploadUtils;
-    @Autowired
+
+    @Resource
     private SecurityUtils securityUtils;
-    @Autowired
+
+    @Resource
     private TeacherService teacherService;
 
     @RequestMapping("/move/list")
@@ -113,9 +114,9 @@ public class MoveController {
         if (user.getRole() == UserRoles.STUDENT) {
             StudentPO studentPO = studentService.getOne(new QueryWrapper<>(StudentPO.class).eq(
                 "user_id", user.getId()));
-            DormPO dormPO = dormService.getById(studentPO.getDormId());
-            userStudent = StudentVO.valueOf(studentPO, dormPO);
             if (studentPO != null) {
+                DormPO dormPO = dormService.getById(studentPO.getDormId());
+                userStudent = StudentVO.valueOf(studentPO, dormPO);
                 moves = moves.stream().filter(i -> i.getStudentId().equals(studentPO.getId())).toList();
             } else {
                 moves = new ArrayList<>();
@@ -205,140 +206,100 @@ public class MoveController {
         return url;
     }
 
-    @RequestMapping("/move/update/{id}")
+    @RequestMapping("/api/move/agree/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public String showMoveUpdatePage(@PathVariable Integer id, RedirectAttributes redirectAttributes, Model model) {
-        String notExistUrl = "redirect:/move/list";
-
-        // 获取搬迁信息
-        MovePO movePO = moveService.getById(id);
-
-        if (movePO == null) {
-            redirectAttributes.addFlashAttribute("msg", "搬迁记录不存在");
-            return notExistUrl;
-        }
-
-        // 获取当前用户
-        UserVO user = securityUtils.getCurrentUser();
-
-        // 如果是换宿舍，只有管理员和辅导员可以修改
-        if (
-            movePO.getType() == MoveType.CHANGE
-                && user.getRole() != UserRoles.ADMIN
-                && (user.getRole() != UserRoles.TEACHER || securityUtils.getTeacherType() != TeacherType.INSTRUCTOR)
-        ) {
-            redirectAttributes.addFlashAttribute("msg", "只有管理员和辅导员可以修改换宿舍申请");
-            return notExistUrl;
-        }
-
-        // 如果是其他的，则检验是否进入本人审核阶段
-        if (user.getRole() == UserRoles.TEACHER) {
-            // 是辅导员
-            if (securityUtils.getTeacherType() == TeacherType.INSTRUCTOR && movePO.getStatus() != MoveStatus.WAIT_INSTRUCTOR_AUDIT) {
-                redirectAttributes.addFlashAttribute("msg", "只能审核待辅导员审核的搬迁记录");
-                return notExistUrl;
-            }
-            // 是学办
-            if (securityUtils.getTeacherType() == TeacherType.OFFICE && movePO.getStatus() != MoveStatus.WAIT_OFFICE_AUDIT) {
-                redirectAttributes.addFlashAttribute("msg", "只能审核待学办审核的搬迁记录");
-                return notExistUrl;
-            }
-            // 是学工部
-            if (securityUtils.getTeacherType() == TeacherType.AFFAIRS && movePO.getStatus() != MoveStatus.WAIT_AFFAIRS_AUDIT) {
-                redirectAttributes.addFlashAttribute("msg", "只能审核待学工部审核的搬迁记录");
-                return notExistUrl;
-            }
-        }
-
-        StudentPO studentPO = studentService.getById(movePO.getStudentId());
-        DormPO fromDormPO = dormService.getById(movePO.getFromDormId());
-        DormPO toDormPO = dormService.getById(movePO.getToDormId());
-        MoveVO move = MoveVO.valueOf(movePO, studentPO, fromDormPO, toDormPO);
-        model.addAttribute("move", move);
-
-        return "move/update";
-    }
-
-    @RequestMapping("/api/move/update")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public String updateMove(
-        @ModelAttribute @Validated UpdateMoveDTO moveDTO,
-        BindingResult bindingResult,
+    public String agreeMove(
+        @PathVariable Integer id,
         RedirectAttributes redirectAttributes
     ) {
-        String successUrl = "redirect:/move/list";
-        String errorUrl = "redirect:/move/update/" + moveDTO.getId();
-
-        // 基本参数检验
-        if (bindingResult.hasErrors() && bindingResult.getFieldError() != null) {
-            redirectAttributes.addFlashAttribute("msg", bindingResult.getFieldError().getDefaultMessage());
-            return errorUrl;
-        }
+        String url = "redirect:/move/list";
 
         // ID 检验
-        MovePO oldMove = moveService.getById(moveDTO.getId());
-        if (oldMove == null) {
+        MovePO movePO = moveService.getById(id);
+        if (movePO == null) {
             redirectAttributes.addFlashAttribute("msg", "搬迁不存在");
-            return errorUrl;
+            return url;
         }
 
-        // 学生 ID 检验
-        StudentPO studentPO = studentService.getById(oldMove.getStudentId());
-        if (studentPO == null) {
-            redirectAttributes.addFlashAttribute("msg", "学生 ID 不存在");
-            return errorUrl;
-        }
+        // 获取搬迁类型和状态
+        MoveType moveType = movePO.getType();
+        MoveStatus moveStatus = movePO.getStatus();
 
         // 获取当前用户
         UserVO user = securityUtils.getCurrentUser();
+        UserRoles userRole = user.getRole();
 
-        // 如果是换宿舍，只有管理员和辅导员可以修改
-        if (
-            oldMove.getType() == MoveType.CHANGE
-                && user.getRole() != UserRoles.ADMIN
-                && (user.getRole() != UserRoles.TEACHER || securityUtils.getTeacherType() != TeacherType.INSTRUCTOR)
-        ) {
-            redirectAttributes.addFlashAttribute("msg", "只有管理员和辅导员可以修改换宿舍申请");
-            return errorUrl;
-        }
-
-        // 如果是教师，则检验是否进入本人审核阶段
-        if (user.getRole() == UserRoles.TEACHER) {
-            TeacherPO teacherPO = teacherService.getOne(new QueryWrapper<>(TeacherPO.class).eq(
+        // 如果是教师用户，则获取教师类型
+        TeacherType teacherType = null;
+        if (userRole == UserRoles.TEACHER) {
+            TeacherPO teacherInfo = teacherService.getOne(new QueryWrapper<>(TeacherPO.class).eq(
                 "user_id", user.getId()));
-            if (teacherPO == null) {
-                redirectAttributes.addFlashAttribute("msg", "非法教师身份");
-                return errorUrl;
+
+            // 检查教师有没有绑定教师信息
+            if (teacherInfo == null) {
+                redirectAttributes.addFlashAttribute("msg", "请联系管理员绑定教师信息");
+                return url;
             }
-            // 是辅导员
-            if (teacherPO.getTeacherType() == TeacherType.INSTRUCTOR && oldMove.getStatus() != MoveStatus.WAIT_INSTRUCTOR_AUDIT) {
+            teacherType = teacherInfo.getTeacherType();
+
+            // 检查是否有该类型教师不能操作的数据
+            // 1. 辅导员
+            if (teacherType == TeacherType.INSTRUCTOR && moveStatus != MoveStatus.WAIT_INSTRUCTOR_AUDIT) {
                 redirectAttributes.addFlashAttribute("msg", "只能审核待辅导员审核的搬迁记录");
-                return errorUrl;
+                return url;
             }
-            // 是学办
-            if (teacherPO.getTeacherType() == TeacherType.OFFICE && oldMove.getStatus() != MoveStatus.WAIT_OFFICE_AUDIT) {
+            // 2. 学办
+            else if (teacherType == TeacherType.OFFICE && moveStatus != MoveStatus.WAIT_OFFICE_AUDIT) {
                 redirectAttributes.addFlashAttribute("msg", "只能审核待学办审核的搬迁记录");
-                return errorUrl;
+                return url;
             }
-            // 是学工部
-            if (teacherPO.getTeacherType() == TeacherType.AFFAIRS && oldMove.getStatus() != MoveStatus.WAIT_AFFAIRS_AUDIT) {
+            // 3. 学工部
+            else if (teacherType == TeacherType.AFFAIRS && moveStatus != MoveStatus.WAIT_AFFAIRS_AUDIT) {
                 redirectAttributes.addFlashAttribute("msg", "只能审核待学工部审核的搬迁记录");
-                return errorUrl;
+                return url;
             }
         }
 
-        // 更新搬迁信息
+        // 构建更新搬迁信息条件
         UpdateWrapper<MovePO> uw = new UpdateWrapper<>();
-        uw.eq("id", moveDTO.getId());
-        uw.set("status", moveDTO.getStatus());
+        uw.eq("id", id);
+        // 设置同意后的新状态
+        // 1. 换宿舍类型搬迁只需要一步审核
+        MoveStatus newStatus = null;
+        if (moveType == MoveType.CHANGE) {
+            newStatus = MoveStatus.PASS;
+        }
+        // 2. 其他类型需要三步审核
+        else {
+            // 2.1 管理员直接通过
+            if (userRole == UserRoles.ADMIN) {
+                newStatus = MoveStatus.PASS;
+            }
+            // 2.2 教师
+            else if (userRole == UserRoles.TEACHER) {
+                // 2.2.1 辅导员类型，待学办审核
+                if (teacherType == TeacherType.INSTRUCTOR) {
+                    newStatus = MoveStatus.WAIT_OFFICE_AUDIT;
+                }
+                // 2.2.2 学办，待学办审核 -> 待学工部审核
+                else if (teacherType == TeacherType.OFFICE) {
+                    newStatus = MoveStatus.WAIT_AFFAIRS_AUDIT;
+                }
+                // 2.2.3 学工部，待学工部审核 -> 通过
+                else if (teacherType == TeacherType.AFFAIRS) {
+                    newStatus = MoveStatus.PASS;
+                }
+            }
+        }
+        uw.set("status", newStatus);
         // 设置更新时间
         uw.set("update_time", new DateTime());
         moveService.update(uw);
 
         // 如果搬迁状态为通过，则更新宿舍和学生状态
-        if (moveDTO.getStatus().equals(MoveStatus.PASS)) {
-            // 更新宿舍状态
-            DormPO fromDorm = dormService.getById(oldMove.getFromDormId());
+        if (newStatus == MoveStatus.PASS) {
+            // 更新来源宿舍状态
+            DormPO fromDorm = dormService.getById(movePO.getFromDormId());
             if (fromDorm != null) {
                 fromDorm.decreaseSetting();
                 fromDorm.setStatus(DormStatus.FREE);
@@ -346,7 +307,8 @@ public class MoveController {
                 log.info("学生搬迁存在来源宿舍，ID： {}。宿舍人数减少，当前人数：{}", fromDorm.getId(), fromDorm.getSetting());
             }
 
-            DormPO toDorm = dormService.getById(oldMove.getToDormId());
+            // 更新迁往宿舍状态
+            DormPO toDorm = dormService.getById(movePO.getToDormId());
             if (toDorm != null) {
                 toDorm.increaseSetting();
                 if (Objects.equals(toDorm.getSetting(), toDorm.getPeople())) {
@@ -358,29 +320,97 @@ public class MoveController {
 
             // 更新学生状态
             UpdateWrapper<StudentPO> uwStudent = new UpdateWrapper<>();
-            uwStudent.eq("id", oldMove.getStudentId());
-            uwStudent.set("dorm_id", oldMove.getToDormId());
+            uwStudent.eq("id", movePO.getStudentId());
+            uwStudent.set("dorm_id", movePO.getToDormId());
             studentService.update(uwStudent);
 
-            StudentPO updateResult = studentService.getById(oldMove.getStudentId());
-            log.info("学生搬迁成功，更新学生宿舍 ID： {} -> {}", oldMove.getFromDormId(), updateResult.getDormId());
+            StudentPO updateResult = studentService.getById(movePO.getStudentId());
+            log.info("学生搬迁成功，更新学生宿舍 ID： {} -> {}", movePO.getFromDormId(), updateResult.getDormId());
         }
 
-        return successUrl;
+        return url;
+    }
+
+    @RequestMapping("/api/move/reject/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public String rejectMove(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        String url = "redirect:/move/list";
+
+        // ID 检验
+        MovePO movePO = moveService.getById(id);
+        if (movePO == null) {
+            redirectAttributes.addFlashAttribute("msg", "搬迁记录不存在");
+            return url;
+        }
+
+        // 获取搬迁状态
+        MoveStatus moveStatus = movePO.getStatus();
+
+        // 获取当前用户
+        UserVO user = securityUtils.getCurrentUser();
+        UserRoles userRole = user.getRole();
+
+        // 如果是教师用户，则获取教师类型
+        if (userRole == UserRoles.TEACHER) {
+            TeacherPO teacherInfo = teacherService.getOne(new QueryWrapper<>(TeacherPO.class).eq(
+                "user_id", user.getId()));
+
+            // 检查教师有没有绑定教师信息
+            if (teacherInfo == null) {
+                redirectAttributes.addFlashAttribute("msg", "请联系管理员绑定教师信息");
+                return url;
+            }
+            TeacherType teacherType = teacherInfo.getTeacherType();
+
+            // 检查是否有该类型教师不能操作的数据
+            // 1. 辅导员
+            if (teacherType == TeacherType.INSTRUCTOR && moveStatus != MoveStatus.WAIT_INSTRUCTOR_AUDIT) {
+                redirectAttributes.addFlashAttribute("msg", "只能审核待辅导员审核的搬迁记录");
+                return url;
+            }
+            // 2. 学办
+            else if (teacherType == TeacherType.OFFICE && moveStatus != MoveStatus.WAIT_OFFICE_AUDIT) {
+                redirectAttributes.addFlashAttribute("msg", "只能审核待学办审核的搬迁记录");
+                return url;
+            }
+            // 3. 学工部
+            else if (teacherType == TeacherType.AFFAIRS && moveStatus != MoveStatus.WAIT_AFFAIRS_AUDIT) {
+                redirectAttributes.addFlashAttribute("msg", "只能审核待学工部审核的搬迁记录");
+                return url;
+            }
+        }
+
+        // 构建更新搬迁信息条件
+        UpdateWrapper<MovePO> uw = new UpdateWrapper<>();
+        uw.eq("id", id);
+        // 设置拒绝后的新状态
+        uw.set("status", MoveStatus.REJECT);
+        // 设置更新时间
+        uw.set("update_time", new DateTime());
+        moveService.update(uw);
+
+        return url;
     }
 
     @RequestMapping("/api/move/cancel/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     public String cancelMove(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        MovePO movePO = moveService.getById(id);
+        String url = "redirect:/move/list";
 
+        // ID 检验
+        MovePO movePO = moveService.getById(id);
         if (movePO == null) {
             redirectAttributes.addFlashAttribute("msg", "搬迁记录不存在");
-            return "redirect:/move/list";
+            return url;
         }
-        if (movePO.getStatus() == MoveStatus.PASS || movePO.getStatus() == MoveStatus.REJECT || movePO.getStatus() == MoveStatus.CANCELLED) {
+
+        // 获取搬迁状态
+        MoveStatus moveStatus = movePO.getStatus();
+
+        // 检查是否可以撤销
+        if (moveStatus == MoveStatus.PASS || moveStatus == MoveStatus.REJECT || moveStatus == MoveStatus.CANCELLED) {
             redirectAttributes.addFlashAttribute("msg", "搬迁记录已不可撤销");
-            return "redirect:/move/list";
+            return url;
         }
 
         // 取消搬迁
@@ -388,7 +418,157 @@ public class MoveController {
         movePO.setUpdateTime(new DateTime());
         moveService.updateById(movePO);
 
-        return "redirect:/move/list";
+        return url;
+    }
+
+    @ResponseBody
+    @RequestMapping("/api/move/batchAgree")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public String batchAgree(String idList) {
+        List<Integer> list = IdListUtils.convertToIntegerList(idList);
+
+        if (moveService.isAnyIdNotExist(list)) {
+            return "某个 ID 不存在";
+        }
+
+        // 获取搬迁数据列表
+        List<MovePO> movePOList = moveService.listByIds(list);
+
+        // 获取当前用户
+        UserVO user = securityUtils.getCurrentUser();
+        UserRoles userRole = user.getRole();
+        // 如果是教师用户，则获取教师类型
+        TeacherType teacherType = null;
+        if (userRole == UserRoles.TEACHER) {
+            TeacherPO teacherInfo = teacherService.getOne(new QueryWrapper<>(TeacherPO.class).eq(
+                "user_id", user.getId()));
+
+            // 检查教师有没有绑定教师信息
+            if (teacherInfo == null) {
+                return "请联系管理员绑定教师信息";
+            }
+            teacherType = teacherInfo.getTeacherType();
+
+            // 检查是否有该类型教师不能操作的数据
+            // 1. 辅导员
+            if (teacherType == TeacherType.INSTRUCTOR && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_INSTRUCTOR_AUDIT)) {
+                return "只能审核待辅导员审核的搬迁记录";
+            }
+            // 2. 学办
+            else if (teacherType == TeacherType.OFFICE && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_OFFICE_AUDIT)) {
+                return "只能审核待学办审核的搬迁记录";
+            }
+            // 3. 学工部
+            else if (teacherType == TeacherType.AFFAIRS && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_AFFAIRS_AUDIT)) {
+                return "只能审核待学工部审核的搬迁记录";
+            }
+        }
+
+        boolean flag = true;
+        for (MovePO movePO : movePOList) {
+            // 获取搬迁类型和状态
+            MoveType moveType = movePO.getType();
+
+            // 构建更新搬迁信息条件
+            UpdateWrapper<MovePO> uw = new UpdateWrapper<>();
+            uw.eq("id", movePO.getId());
+            // 设置同意后的新状态
+            // 1. 换宿舍类型搬迁只需要一步审核
+            MoveStatus newStatus = null;
+            if (moveType == MoveType.CHANGE) {
+                newStatus = MoveStatus.PASS;
+            }
+            // 2. 其他类型需要三步审核
+            else {
+                // 2.1 管理员直接通过
+                if (userRole == UserRoles.ADMIN) {
+                    newStatus = MoveStatus.PASS;
+                }
+                // 2.2 教师
+                else if (userRole == UserRoles.TEACHER) {
+                    // 2.2.1 辅导员类型，待学办审核
+                    if (teacherType == TeacherType.INSTRUCTOR) {
+                        newStatus = MoveStatus.WAIT_OFFICE_AUDIT;
+                    }
+                    // 2.2.2 学办，待学办审核 -> 待学工部审核
+                    else if (teacherType == TeacherType.OFFICE) {
+                        newStatus = MoveStatus.WAIT_AFFAIRS_AUDIT;
+                    }
+                    // 2.2.3 学工部，待学工部审核 -> 通过
+                    else if (teacherType == TeacherType.AFFAIRS) {
+                        newStatus = MoveStatus.PASS;
+                    }
+                }
+            }
+            uw.set("status", newStatus);
+            // 设置更新时间
+            uw.set("update_time", new DateTime());
+            flag = flag & moveService.update(uw);
+        }
+
+        if (!flag) {
+            return "批量同意部分失败";
+        } else {
+            return "OK";
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping("/api/move/batchReject")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public String batchRejectMove(String idList) {
+        List<Integer> list = IdListUtils.convertToIntegerList(idList);
+
+        if (moveService.isAnyIdNotExist(list)) {
+            return "某个 ID 不存在";
+        }
+
+        // 获取搬迁数据列表
+        List<MovePO> movePOList = moveService.listByIds(list);
+
+        // 获取当前用户
+        UserVO user = securityUtils.getCurrentUser();
+        UserRoles userRole = user.getRole();
+
+        // 如果是教师用户，则获取教师类型
+        if (userRole == UserRoles.TEACHER) {
+            TeacherPO teacherInfo = teacherService.getOne(new QueryWrapper<>(TeacherPO.class).eq(
+                "user_id", user.getId()));
+
+            // 检查教师有没有绑定教师信息
+            if (teacherInfo == null) {
+                return "请联系管理员绑定教师信息";
+            }
+            TeacherType teacherType = teacherInfo.getTeacherType();
+
+            // 检查是否有该类型教师不能操作的数据
+            // 1. 辅导员
+            if (teacherType == TeacherType.INSTRUCTOR && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_INSTRUCTOR_AUDIT)) {
+                return "只能审核待辅导员审核的搬迁记录";
+            }
+            // 2. 学办
+            else if (teacherType == TeacherType.OFFICE && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_OFFICE_AUDIT)) {
+                return "只能审核待学办审核的搬迁记录";
+            }
+            // 3. 学工部
+            else if (teacherType == TeacherType.AFFAIRS && movePOList.stream().anyMatch(move -> move.getStatus() != MoveStatus.WAIT_AFFAIRS_AUDIT)) {
+                return "只能审核待学工部审核的搬迁记录";
+            }
+        }
+
+        boolean flag = true;
+        for (MovePO movePO : movePOList) {
+            // 取消搬迁
+            movePO.setStatus(MoveStatus.REJECT);
+            movePO.setUpdateTime(new DateTime());
+            flag = flag & moveService.updateById(movePO);
+        }
+
+        if (!flag) {
+            return "批量拒绝部分失败";
+        } else {
+            return "OK";
+        }
     }
 
     @ResponseBody
@@ -404,10 +584,12 @@ public class MoveController {
             return "某个 ID 的搬迁记录已不可撤销";
         }
 
+        // 获取搬迁数据列表
+        List<MovePO> movePOList = moveService.listByIds(list);
+
         boolean flag = true;
-        for (Integer id : list) {
+        for (MovePO movePO : movePOList) {
             // 取消搬迁
-            MovePO movePO = moveService.getById(id);
             movePO.setStatus(MoveStatus.CANCELLED);
             movePO.setUpdateTime(new DateTime());
             flag = flag & moveService.updateById(movePO);

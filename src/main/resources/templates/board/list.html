@@ -275,7 +275,7 @@
                   <div class="row">
                     <!-- Column  -->
                     <div class="col-xl-12" th:each="board:${boards}">
-                      <div class="card dz-card" th:id="${board.id}">
+                      <div class="card dz-card" th:id="${board.id}" style="cursor: pointer">
                         <div class="card-header flex-wrap border-0 pb-0">
                           <h5>
                             <div class="d-flex align-items-center">
@@ -295,7 +295,7 @@
                           <ul class="nav nav-tabs dzm-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                               <a
-                                sec:authorize="hasAnyRole('ADMIN')"
+                                th:if="${session.user.role.name eq 'ADMIN' or board.userId eq session.user.id}"
                                 th:href="@{ '/api/board/delete/' + ${board.id} }"
                                 class="nav-link active"
                                 type="button"

@@ -8,18 +8,22 @@ import com.dorm.entity.dorm.DormVO;
 import com.dorm.entity.dorm.QueryDormDTO;
 import com.dorm.entity.dorm.UpdateDormDTO;
 import com.dorm.entity.user.UserPO;
+import com.dorm.entity.user.UserVO;
 import com.dorm.entity.user.student.StudentPO;
 import com.dorm.entity.user.student.StudentVO;
 import com.dorm.enums.dorm.DormStatus;
+import com.dorm.enums.user.UserRoles;
 import com.dorm.service.dorm.DormService;
 import com.dorm.service.user.UserService;
 import com.dorm.service.user.student.StudentService;
 import com.dorm.utils.IdListUtils;
+import com.dorm.utils.SecurityUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -47,9 +51,11 @@ public class DormController {
 
     @Resource
     private UserService userService;
+    @Autowired
+    private SecurityUtils securityUtils;
 
     @RequestMapping("/dorm/list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'STUDENT')")
     public String showDormListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
@@ -72,10 +78,22 @@ public class DormController {
             }
             List<DormPO> dormPOList = dormService.list(qw);
 
-
             // 处理 DormPO -> DormVO
             // 返回宿舍数据
             List<DormVO> dorms = DormVO.valuesOf(dormPOList);
+
+            // 如果是学生，筛选出自己的搬迁申请
+            UserVO user = securityUtils.getCurrentUser();
+            if (user.getRole() == UserRoles.STUDENT) {
+                StudentPO studentPO = studentService.getOne(new QueryWrapper<>(StudentPO.class).eq(
+                    "user_id", user.getId()));
+                if (studentPO != null) {
+                    dorms = dorms.stream().filter(i -> i.getId().equals(studentPO.getDormId())).toList();
+                } else {
+                    dorms = new ArrayList<>();
+                }
+            }
+
             PageInfo<DormVO> pageInfo = new PageInfo<>(dorms);
             pageInfo.setTotal(page.getTotal());
             pageInfo.setPages(page.getPages());
@@ -89,7 +107,7 @@ public class DormController {
     }
 
     @RequestMapping("/dorm/detail/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'STUDENT')")
     public String dormDetail(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         String notExistUrl = "redirect:/dorm/list";
 

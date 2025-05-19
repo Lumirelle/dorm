@@ -194,6 +194,16 @@ public class TelephoneCardController {
             return errorUrl;
         }
 
+        // 检查是否有宽带关联
+        // 获取电话卡的宽带信息
+        QueryWrapper<BandwidthPO> qw = new QueryWrapper<>();
+        qw.eq("telephone_card_id", oldTelephoneCard.getId());
+        long count = bandwidthService.count(qw);
+        if (count > 0) {
+            redirectAttributes.addFlashAttribute("msg", "电话卡内有宽带，无法注销");
+            return errorUrl;
+        }
+
         // 更新电话卡信息
         UpdateWrapper<TelephoneCardPO> uw = new UpdateWrapper<>();
         uw.eq("id", telephoneCardDTO.getId());

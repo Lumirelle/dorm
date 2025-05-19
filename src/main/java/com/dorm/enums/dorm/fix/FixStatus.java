@@ -14,9 +14,7 @@ public enum FixStatus  implements IEnum<Integer> {
 
     PROCESSED(2, "PROCESSED", "已处理"),
 
-    UNPROCESSABLE(3, "UNPROCESSABLE", "无法处理"),
-
-    CANCELLED(4, "CANCELLED", "已撤销"),;
+    CANCELLED(3, "CANCELLED", "已撤销"),;
 
     @EnumValue
     private final int code;

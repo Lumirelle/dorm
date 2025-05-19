@@ -144,8 +144,8 @@ public class ServicemanController {
 
         // 设置个人信息
         UserPO userPO = userService.getById(cardManagerPO.getUserId());
-        ServicemanVO cardManager = ServicemanVO.valueOf(cardManagerPO, userPO);
-        model.addAttribute("cardManager", cardManager);
+        ServicemanVO serviceman = ServicemanVO.valueOf(cardManagerPO, userPO);
+        model.addAttribute("serviceman", serviceman);
 
         // FIXME: 额外的用户信息，用来更新维修人员时选择
         List<UserPO> userPOList = userService.listUnboundServicemanUsers();

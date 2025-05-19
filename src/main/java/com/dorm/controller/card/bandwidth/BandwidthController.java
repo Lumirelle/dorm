@@ -8,6 +8,7 @@ import com.dorm.entity.card.bandwidth.QueryBandwidthDTO;
 import com.dorm.entity.card.bandwidth.UpdateBandwidthDTO;
 import com.dorm.entity.card.telephone.TelephoneCardPO;
 import com.dorm.entity.card.telephone.TelephoneCardVO;
+import com.dorm.enums.card.telephone.TelephoneCardStatus;
 import com.dorm.service.card.bandwidth.BandwidthService;
 import com.dorm.service.card.telephone.TelephoneCardService;
 import com.dorm.utils.IdListUtils;
@@ -85,7 +86,7 @@ public class BandwidthController {
         model.addAttribute("telephone", bandwidthDTO.getTelephone());
 
         // FIXME：额外的宽带数据，添加时用
-        List<TelephoneCardVO> telephoneCards = TelephoneCardVO.valuesOf(telephoneCardService.list());
+        List<TelephoneCardVO> telephoneCards = TelephoneCardVO.valuesOf(telephoneCardService.listNotCanceled());
         model.addAttribute("telephoneCards", telephoneCards);
 
         return "bandwidth/list";
@@ -110,6 +111,12 @@ public class BandwidthController {
         TelephoneCardPO telephoneCardPO = telephoneCardService.getById(bandwidthDTO.getTelephoneCardId());
         if (telephoneCardPO == null) {
             redirectAttributes.addFlashAttribute("msg", "电话卡不存在");
+            return url;
+        }
+
+        // 电话卡注销检查
+        if (telephoneCardPO.getStatus() == TelephoneCardStatus.CANCEL) {
+            redirectAttributes.addFlashAttribute("msg", "电话卡已注销");
             return url;
         }
 

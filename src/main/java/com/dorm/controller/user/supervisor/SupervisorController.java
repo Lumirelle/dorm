@@ -153,7 +153,11 @@ public class SupervisorController {
         model.addAttribute("supervisor", supervisor);
 
         // FIXME: 额外的用户信息和楼栋信息，用来更新时选择
-        List<UserVO> users = UserVO.valuesOf(userService.listUnboundSupervisorUsers());
+        List<UserPO> userPoList = userService.listUnboundSupervisorUsers();
+        if (userPO != null) {
+            userPoList.add(userPO);
+        }
+        List<UserVO> users = UserVO.valuesOf(userPoList);
         model.addAttribute("users", users);
 
         Set<String> buildings = dormService.listUniqueBuildings();

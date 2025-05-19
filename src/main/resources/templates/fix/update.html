@@ -300,13 +300,6 @@
                                 已处理
                               </option>
                               <option
-                                value="UNPROCESSABLE"
-                                sec:authorize="hasAnyRole('ADMIN', 'SERVICEMAN')"
-                                th:selected="${fix.status.name eq 'UNPROCESSABLE'}"
-                              >
-                                无法处理
-                              </option>
-                              <option
                                 value="CANCELLED"
                                 sec:authorize="hasRole('ADMIN')"
                                 th:selected="${fix.status.name eq 'CANCELLED'}"

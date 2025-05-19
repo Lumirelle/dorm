@@ -271,11 +271,11 @@
                               <option th:selected="${telephoneCard.status.name eq 'OVERDUE'}" value="OVERDUE">
                                 欠费
                               </option>
-                              <option th:selected="${telephoneCard.status.name eq 'CANCEL'}" value="CANCEL">
-                                注销
-                              </option>
                               <option th:selected="${telephoneCard.status.name eq 'SUSPEND'}" value="SUSPEND">
                                 停机
+                              </option>
+                              <option th:selected="${telephoneCard.status.name eq 'CANCEL'}" value="CANCEL">
+                                注销
                               </option>
                             </select>
                           </div>

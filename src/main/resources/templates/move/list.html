@@ -309,8 +309,10 @@
                             </svg>
                           </a>
 
-                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
-                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-danger" type="button" id="batchDelete">批量撤销</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')" class="btn btn-primary" type="button" id="selectAll">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER')" class="btn btn-success" type="button" id="batchAgree">批量同意</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER')" class="btn btn-danger" type="button" id="batchReject">批量拒绝</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-warning" type="button" id="batchDelete">批量撤销</button>
                         </div>
                       </div>
                     </div>
@@ -368,30 +370,56 @@
                                 <td><strong>[[${#dates.format(move.updateTime, 'yyyy-MM-dd HH:mm:ss')}]]</strong></td>
                                 <td><strong>[[${move.status.description}]]</strong></td>
                                 <td>
-                                  <div class="d-flex">
+                                  <div class="d-flex flex-column gap-1">
+                                    <!-- 通过按钮 -->
                                     <a
                                       sec:authorize="hasAnyRole('ADMIN', 'TEACHER')"
                                       th:if="${
-                                        (move.status.name == 'INSTRUCTOR_AUDIT'
-                                          and (session.teacherType == null or session.teacherType?.name == 'INSTRUCTOR')
+                                        (
+                                          session.user.role.name eq 'ADMIN'
+                                          and (move.status.name eq 'INSTRUCTOR_AUDIT' or move.status.name eq 'OFFICE_AUDIT' or move.status.name eq 'AFFAIRS_AUDIT')
                                         )
-                                        or (move.status.name == 'OFFICE_AUDIT'
-                                          and (session.teacherType == null or session.teacherType?.name == 'OFFICE')
-                                        )
-                                        or (move.status.name == 'AFFAIRS_AUDIT'
-                                          and (session.teacherType == null or session.teacherType?.name == 'AFFAIRS')
+                                        or (
+                                          session.user.role.name eq 'TEACHER' and
+                                          (
+                                            (move.status.name eq 'INSTRUCTOR_AUDIT' and session.teacherType?.name eq 'INSTRUCTOR')
+                                            or (move.status.name eq 'OFFICE_AUDIT' and session.teacherType?.name eq 'OFFICE')
+                                            or (move.status.name eq 'AFFAIRS_AUDIT' and session.teacherType?.name eq 'AFFAIRS')
+                                          )
                                         )
                                       }"
-                                      th:href="@{'/move/update/'+${move.id}}"
-                                      class="btn btn-primary shadow btn-xs sharp me-1"
+                                      th:href="@{'/api/move/agree/'+${move.id}}"
+                                      class="btn btn-success shadow btn-xs sharp"
                                       ><i class="fas fa-check"></i
                                     ></a>
+                                    <!-- 拒绝按钮 -->
+                                    <a
+                                      sec:authorize="hasAnyRole('ADMIN', 'TEACHER')"
+                                      th:if="${
+                                        (
+                                          session.user.role.name eq 'ADMIN'
+                                          and (move.status.name eq 'INSTRUCTOR_AUDIT' or move.status.name eq 'OFFICE_AUDIT' or move.status.name eq 'AFFAIRS_AUDIT')
+                                        )
+                                        or (
+                                          session.user.role.name eq 'TEACHER' and
+                                          (
+                                            (move.status.name eq 'INSTRUCTOR_AUDIT' and session.teacherType?.name eq 'INSTRUCTOR')
+                                            or (move.status.name eq 'OFFICE_AUDIT' and session.teacherType?.name eq 'OFFICE')
+                                            or (move.status.name eq 'AFFAIRS_AUDIT' and session.teacherType?.name eq 'AFFAIRS')
+                                          )
+                                        )
+                                      }"
+                                      th:href="@{'/api/move/reject/'+${move.id}}"
+                                      class="btn btn-danger shadow btn-xs sharp"
+                                    ><i class="fa fa-ban"></i
+                                    ></a>
+                                    <!-- 撤销按钮 -->
                                     <a
                                       sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
                                       th:if="${move.status.name == 'INSTRUCTOR_AUDIT'}"
                                       th:href="@{'/api/move/cancel/'+${move.id}}"
-                                      class="btn btn-danger shadow btn-xs sharp"
-                                      ><i class="fa fa-ban"></i
+                                      class="btn btn-warning shadow btn-xs sharp"
+                                      ><i class="fa fa-eraser"></i
                                     ></a>
                                   </div>
                                 </td>
