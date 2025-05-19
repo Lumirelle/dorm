@@ -16,6 +16,7 @@ public enum FixStatus  implements IEnum<Integer> {
 
     CANCELLED(3, "CANCELLED", "已撤销"),;
 
+    //与数据库中的整型字段直接映射
     @EnumValue
     private final int code;
     private final String name;

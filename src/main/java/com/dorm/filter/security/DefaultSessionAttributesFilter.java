@@ -35,19 +35,23 @@ public class DefaultSessionAttributesFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
+        //从安全上下文中获取当前认证信息
         @NonNull HttpServletRequest request,
         @NonNull HttpServletResponse response,
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        //检查认证信息不为空且通过
+        //如果它的Principal是UserDetail类型，就把他改名字成userDetails
         if (authentication != null && authentication.isAuthenticated() &&
             authentication.getPrincipal() instanceof UserDetails userDetails) {
 
+            //获取当前请求的会话
             HttpSession session = request.getSession();
 
             if (session.getAttribute("baseUrl") == null) {
-                // 设置baseUrl
+                // 设置baseUrl，如http://localhost:8088
                 String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
                 request.getSession().setAttribute("baseUrl", baseUrl);
             }
