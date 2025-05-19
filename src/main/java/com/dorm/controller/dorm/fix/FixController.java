@@ -8,7 +8,7 @@ import com.dorm.entity.dorm.DormVO;
 import com.dorm.entity.dorm.fix.AddFixDTO;
 import com.dorm.entity.dorm.fix.FixPO;
 import com.dorm.entity.dorm.fix.FixVO;
-import com.dorm.entity.dorm.fix.QueryFixDTO;
+import com.dorm.entity.QueryParams;
 import com.dorm.entity.dorm.fix.UpdateFixDTO;
 import com.dorm.entity.user.UserVO;
 import com.dorm.entity.user.student.StudentPO;
@@ -25,7 +25,6 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,9 +52,11 @@ public class FixController {
 
     @Resource
     private UploadUtils uploadUtils;
-    @Autowired
+
+    @Resource
     private SecurityUtils securityUtils;
-    @Autowired
+
+    @Resource
     private StudentService studentService;
 
     @RequestMapping("/fix/list")
@@ -63,7 +64,7 @@ public class FixController {
     public String showFixListPage(
         @RequestParam(value = "pageNum", defaultValue = "1", required = false) Integer pageNum,
         @RequestParam(value = "pageSize", defaultValue = "15", required = false) Integer pageSize,
-        QueryFixDTO fixDTO,
+        QueryParams queryParams,
         Model model
     ) {
         // 分页
@@ -76,9 +77,6 @@ public class FixController {
         List<FixPO> fixPOList;
         try (Page<FixPO> ignored = PageHelper.startPage(pageNum, pageSize)) {
             QueryWrapper<FixPO> qw = new QueryWrapper<>();
-            if (Strings.isNotBlank(fixDTO.getDescription())) {
-                qw.like("description", fixDTO.getDescription());
-            }
             fixPOList = fixService.list(qw);
         }
 
@@ -91,6 +89,14 @@ public class FixController {
             // 构造 FixVO 信息
             FixVO fix = FixVO.valueOf(fixPO, dormPO);
             fixes.add(fix);
+        }
+
+        // 筛选
+        if (Strings.isNotBlank(queryParams.getSearchKey())) {
+            fixes = fixes.stream().filter(i ->
+                i.getDorm().contains(queryParams.getSearchKey())
+                    || i.getDescription().contains(queryParams.getSearchKey())
+            ).toList();
         }
 
         UserVO user = securityUtils.getCurrentUser();
@@ -113,7 +119,7 @@ public class FixController {
         model.addAttribute("pageInfo", pageInfo);
 
         // 回显查询条件
-        model.addAttribute("description", fixDTO.getDescription());
+        model.addAttribute("searchKey", queryParams.getSearchKey());
 
         // FIXME: 额外的宿舍信息，用来在添加保修时使用
         if (user.getRole() == UserRoles.ADMIN || user.getRole() == UserRoles.SERVICEMAN) {

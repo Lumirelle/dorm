@@ -311,7 +311,7 @@
 
                           <button
                             sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
-                            class="btn btn-info"
+                            class="btn btn-primary"
                             type="button"
                             id="selectAll"
                           >
@@ -405,7 +405,7 @@
                                       th:if="${access.status.name == 'WAIT_ADULT'}"
                                       th:href="@{ '/api/access/cancel/' + ${access.id} }"
                                       class="btn btn-danger shadow btn-xs sharp"
-                                      ><i class="fa fa-ban"></i
+                                      ><i class="fa fa-eraser"></i
                                     ></a>
                                   </div>
                                 </td>

@@ -308,7 +308,7 @@
                             </svg>
                           </a>
 
-                          <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER')" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'AFFAIRS'}" class="btn btn-info" type="button" id="selectAll" >批量选择  </button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER')" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'AFFAIRS'}" class="btn btn-primary" type="button" id="selectAll" >批量选择  </button>
                           <button sec:authorize="hasAnyRole('ADMIN', 'TEACHER')" th:if="${session.user.role.name ne 'TEACHER' or session.teacherType.name eq 'AFFAIRS'}" class="btn btn-danger" type="button" id="batchDelete">批量删除</button>
                         </div>
                       </div>

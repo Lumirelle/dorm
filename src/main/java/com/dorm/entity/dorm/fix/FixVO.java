@@ -22,15 +22,18 @@ public class FixVO {
     private Integer dormId;
 
     // From DormPO
-    private String building;
-    private String no;
+    private String dorm;
 
     public static FixVO valueOf(@NonNull FixPO fixPO) {
         return valueOf(fixPO, null);
     }
 
     public static FixVO valueOf(@NonNull FixPO fixPO, DormPO dormPO) {
-        return BeanConvertUtils.convert(FixVO.class, fixPO, dormPO);
+        FixVO fixVO = BeanConvertUtils.convert(FixVO.class, fixPO);
+        if (dormPO != null) {
+            fixVO.setDorm(dormPO.getBuilding() + " " + dormPO.getNo());
+        }
+        return fixVO;
     }
 
 }

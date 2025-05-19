@@ -252,9 +252,9 @@
                             <input
                               type="text"
                               class="form-control"
-                              placeholder="搜索（支持名称模糊查询）..."
-                              name="description"
-                              th:value="${description}"
+                              placeholder="搜索（支持宿舍或描述模糊查询）..."
+                              name="searchKey"
+                              th:value="${searchKey}"
                             />
                             <span class="input-group-text"
                               ><a onclick="document:search_form.submit();" type="button"
@@ -309,7 +309,7 @@
                             </svg>
                           </a>
 
-                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-primary" type="button" id="selectAll">批量选择</button>
                           <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-danger" type="button" id="batchDelete">批量撤销</button>
                         </div>
                       </div>
@@ -352,7 +352,7 @@
                                   </div>
                                 </td>
 
-                                <td><strong>[[${fix.building}]] [[${fix.no}]]</strong></td>
+                                <td><strong>[[${fix.dorm}]]</strong></td>
                                 <td><strong>[[${fix.type.description}]]</strong></td>
                                 <td><strong>[[${fix.description}]]</strong></td>
                                 <td>
@@ -384,7 +384,7 @@
                                       th:if="${fix.status.name == 'WAIT_FOR_RECEIVE'}"
                                       th:href="@{'/api/fix/cancel/'+${fix.id}}"
                                       class="btn btn-danger shadow btn-xs sharp"
-                                      ><i class="fa fa-ban"></i
+                                      ><i class="fa fa-eraser"></i
                                     ></a>
                                   </div>
                                 </td>

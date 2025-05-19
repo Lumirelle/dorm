@@ -1,6 +1,7 @@
 package com.dorm.controller.dorm.bill;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.dorm.entity.QueryParams;
 import com.dorm.entity.dorm.DormPO;
 import com.dorm.entity.dorm.DormVO;
 import com.dorm.entity.dorm.bill.AddBillDTO;
@@ -52,7 +53,7 @@ public class BillController {
     public String showBillListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
-        QueryBillDTO billDTO,
+        QueryParams queryParams,
         Model model
     ) {
         // 分页
@@ -65,8 +66,9 @@ public class BillController {
         List<BillPO> billPOList;
         try (Page<BillPO> ignored = PageHelper.startPage(pageNum, pageSize)) {
             QueryWrapper<BillPO> qw = new QueryWrapper<>();
-            if (Strings.isNotBlank(billDTO.getNo())) {
-                qw.like("no", billDTO.getNo());
+            if (Strings.isNotBlank(queryParams.getSearchKey())) {
+                qw.like("water_no", queryParams.getSearchKey())
+                    .or().like("electricity_no", queryParams.getSearchKey());
             }
             billPOList = billService.list(qw);
         }
@@ -92,7 +94,7 @@ public class BillController {
         model.addAttribute("pageInfo", pageInfo);
 
         // 回显查询条件
-        model.addAttribute("no", billDTO.getNo());
+        model.addAttribute("searchKey", queryParams.getSearchKey());
 
         // FIXME: 额外的宿舍信息，添加时需要
         if (userVO.getRole() == UserRoles.ADMIN) {

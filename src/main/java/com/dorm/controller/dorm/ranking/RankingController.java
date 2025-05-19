@@ -1,6 +1,7 @@
 package com.dorm.controller.dorm.ranking;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.dorm.entity.QueryParams;
 import com.dorm.entity.dorm.DormPO;
 import com.dorm.entity.dorm.DormVO;
 import com.dorm.entity.dorm.ranking.AddRankingDTO;
@@ -43,9 +44,11 @@ public class RankingController {
 
     @Resource
     private RankingService rankingService;
-    @Autowired
+
+    @Resource
     private SecurityUtils securityUtils;
-    @Autowired
+
+    @Resource
     private StudentService studentService;
 
     @RequestMapping("/ranking/list")
@@ -53,7 +56,7 @@ public class RankingController {
     public String showDormRankingListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
-        QueryRankingDTO rankingDTO,
+        QueryParams queryParams,
         Model model
     ) {
         // 分页
@@ -80,8 +83,8 @@ public class RankingController {
         }
 
         // 筛选
-        if (Strings.isNotBlank(rankingDTO.getNoOrBuilding())) {
-            rankings = rankings.stream().filter(i -> i.getDorm().contains(rankingDTO.getNoOrBuilding())).toList();
+        if (Strings.isNotBlank(queryParams.getSearchKey())) {
+            rankings = rankings.stream().filter(i -> i.getDorm().contains(queryParams.getSearchKey())).toList();
         }
 
         // 如果是学生，筛选出自己的宿舍
@@ -102,7 +105,7 @@ public class RankingController {
         model.addAttribute("pageInfo", pageInfo);
 
         // 回显查询条件
-        model.addAttribute("noOrBuilding", rankingDTO.getNoOrBuilding());
+        model.addAttribute("searchKey", queryParams.getSearchKey());
 
         // FIXME: 额外提供的宿舍信息，添加时使用
         List<DormVO> dorms = DormVO.valuesOf(dormService.list());

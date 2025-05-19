@@ -252,9 +252,9 @@
                             <input
                               type="text"
                               class="form-control"
-                              placeholder="搜索（支持宿舍楼栋或宿舍号模糊查询）..."
-                              name="noOrBuilding"
-                              th:value="${noOrBuilding}"
+                              placeholder="搜索（支持宿舍模糊查询）..."
+                              name="searchKey"
+                              th:value="${searchKey}"
                             />
                             <span class="input-group-text"
                               ><a onclick="document:search_form.submit();" type="button"

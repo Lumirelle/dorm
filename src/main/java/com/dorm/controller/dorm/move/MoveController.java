@@ -4,6 +4,7 @@ package com.dorm.controller.dorm.move;
 import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.dorm.entity.QueryParams;
 import com.dorm.entity.dorm.DormPO;
 import com.dorm.entity.dorm.DormVO;
 import com.dorm.entity.dorm.move.AddMoveDTO;
@@ -77,7 +78,7 @@ public class MoveController {
     public String showMoveListPage(
         @RequestParam(name = "pageNum", defaultValue = "1", required = false) Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15", required = false) Integer pageSize,
-        QueryMoveDTO moveDTO,
+        QueryParams queryParams,
         Model model
     ) {
         // 分页
@@ -89,8 +90,8 @@ public class MoveController {
         }
         List<MovePO> movePOList;
         try (Page<MovePO> ignored = PageHelper.startPage(pageNum, pageSize)) {
-            if (Strings.isNotBlank(moveDTO.getName())) {
-                movePOList = moveService.listMoveByStudentName(moveDTO.getName());
+            if (Strings.isNotBlank(queryParams.getSearchKey())) {
+                movePOList = moveService.listMoveByStudentName(queryParams.getSearchKey());
             } else {
                 movePOList = moveService.list();
             }
@@ -127,7 +128,7 @@ public class MoveController {
         model.addAttribute("pageInfo", pageInfo);
 
         // 回显查询条件
-        model.addAttribute("name", moveDTO.getName());
+        model.addAttribute("searchKey", queryParams.getSearchKey());
 
         // FIXME: 额外的学生信息和宿舍信息，用来在添加搬迁时选择
         if (user.getRole() == UserRoles.ADMIN || user.getRole() == UserRoles.TEACHER) {

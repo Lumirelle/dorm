@@ -252,9 +252,9 @@
                             <input
                               type="text"
                               class="form-control"
-                              placeholder="搜索（支持名称模糊查询）..."
-                              name="no"
-                              th:value="${no}"
+                              placeholder="搜索（支持水、电费账单号模糊查询）..."
+                              name="searchKey"
+                              th:value="${searchKey}"
                             />
                             <span class="input-group-text"
                               ><a onclick="document:search_form.submit();" type="button"
@@ -302,7 +302,7 @@
                             </svg>
                           </a>
 
-                          <button sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" class="btn btn-info" type="button" id="selectAll">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" class="btn btn-primary" type="button" id="selectAll">批量选择</button>
                           <button sec:authorize="hasAnyRole('ADMIN', 'SUPERVISOR')" class="btn btn-danger" type="button" id="batchDelete">批量删除</button>
                         </div>
                       </div>
