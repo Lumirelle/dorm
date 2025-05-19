@@ -28,13 +28,16 @@ public class StatisticController {
 
     @Resource
     private DormService dormService;
-    @Autowired
+
+    @Resource
     private StudentService studentService;
-    @Autowired
+
+    @Resource
     private UserService userService;
 
     @ResponseBody
     @RequestMapping("/api/statistic/setting-per-building")
+    @PreAuthorize("!hasAnyRole('SERVICEMAN')")
     public List<BarChartColumn> settingsPerBuilding() {
         // 每栋楼的人数
         List<BuildingSettingVO> peoplePerBuild = dormService.countPeoplePerBuild();
