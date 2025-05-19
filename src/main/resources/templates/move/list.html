@@ -624,9 +624,67 @@
             $('input[name=chkHistory]').prop('checked', !$('input[name=chkHistory]').prop('checked'))
           })
 
+          $('#batchAgree').click(function () {
+            let chList = $('input[name=chkHistory]:checked')
+            if (chList.length === 0) {
+              alert('请至少选择一项')
+              return
+            }
+            let ids = ''
+            $(chList).each(function () {
+              let id = $(this).val()
+              ids += ',' + id
+            })
+            $.ajax({
+              url: '/api/move/batchAgree',
+              data: {
+                idList: ids,
+                _csrf: '[[${_csrf.token}]]',
+              },
+              method: 'POST',
+              success: function (data) {
+                if (data === 'OK') {
+                  alert('批量同意成功')
+                  window.location.href = '/move/list'
+                } else {
+                  alert(data)
+                }
+              },
+            })
+          })
+
+          $('#batchReject').click(function () {
+            let chList = $('input[name=chkHistory]:checked')
+            if (chList.length === 0) {
+              alert('请至少选择一项')
+              return
+            }
+            let ids = ''
+            $(chList).each(function () {
+              let id = $(this).val()
+              ids += ',' + id
+            })
+            $.ajax({
+              url: '/api/move/batchReject',
+              data: {
+                idList: ids,
+                _csrf: '[[${_csrf.token}]]',
+              },
+              method: 'POST',
+              success: function (data) {
+                if (data === 'OK') {
+                  alert('批量拒绝成功')
+                  window.location.href = '/move/list'
+                } else {
+                  alert(data)
+                }
+              },
+            })
+          })
+
           $('#batchDelete').click(function () {
             let chList = $('input[name=chkHistory]:checked')
-            if (chList.length == 0) {
+            if (chList.length === 0) {
               alert('请至少选择一项')
               return
             }
@@ -643,7 +701,7 @@
               },
               method: 'POST',
               success: function (data) {
-                if (data == 'OK') {
+                if (data === 'OK') {
                   alert('批量撤销成功')
                   window.location.href = '/move/list'
                 } else {

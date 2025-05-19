@@ -504,6 +504,38 @@ public class MoveController {
             // 设置更新时间
             uw.set("update_time", new DateTime());
             flag = flag & moveService.update(uw);
+
+            // 如果搬迁状态为通过，则更新宿舍和学生状态
+            if (newStatus == MoveStatus.PASS) {
+                // 更新来源宿舍状态
+                DormPO fromDorm = dormService.getById(movePO.getFromDormId());
+                if (fromDorm != null) {
+                    fromDorm.decreaseSetting();
+                    fromDorm.setStatus(DormStatus.FREE);
+                    dormService.updateById(fromDorm);
+                    log.info("学生搬迁存在来源宿舍，ID： {}。宿舍人数减少，当前人数：{}", fromDorm.getId(), fromDorm.getSetting());
+                }
+
+                // 更新迁往宿舍状态
+                DormPO toDorm = dormService.getById(movePO.getToDormId());
+                if (toDorm != null) {
+                    toDorm.increaseSetting();
+                    if (Objects.equals(toDorm.getSetting(), toDorm.getPeople())) {
+                        toDorm.setStatus(DormStatus.FULL);
+                    }
+                    dormService.updateById(toDorm);
+                    log.info("学生搬迁存在去往宿舍，ID： {}。宿舍人数增加，当前人数：{}", toDorm.getId(), toDorm.getSetting());
+                }
+
+                // 更新学生状态
+                UpdateWrapper<StudentPO> uwStudent = new UpdateWrapper<>();
+                uwStudent.eq("id", movePO.getStudentId());
+                uwStudent.set("dorm_id", movePO.getToDormId());
+                studentService.update(uwStudent);
+
+                StudentPO updateResult = studentService.getById(movePO.getStudentId());
+                log.info("学生搬迁成功，更新学生宿舍 ID： {} -> {}", movePO.getFromDormId(), updateResult.getDormId());
+            }
         }
 
         if (!flag) {
