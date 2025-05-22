@@ -51,6 +51,7 @@ public class StatisticController {
             column.setMount(Integer.valueOf(peopleNumber.getSetting()));
             columns.add(column);
         }
+
         return columns;
     }
 

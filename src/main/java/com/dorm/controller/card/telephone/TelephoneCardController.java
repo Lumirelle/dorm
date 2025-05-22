@@ -8,19 +8,26 @@ import com.dorm.entity.card.telephone.QueryTelephoneCardDTO;
 import com.dorm.entity.card.telephone.TelephoneCardPO;
 import com.dorm.entity.card.telephone.TelephoneCardVO;
 import com.dorm.entity.card.telephone.UpdateTelephoneCardDTO;
+import com.dorm.entity.dorm.DormPO;
+import com.dorm.entity.dorm.move.MoveVO;
 import com.dorm.entity.user.UserPO;
+import com.dorm.entity.user.UserVO;
 import com.dorm.entity.user.student.StudentPO;
 import com.dorm.entity.user.student.StudentVO;
 import com.dorm.enums.card.telephone.TelephoneCardStatus;
+import com.dorm.enums.user.UserRoles;
 import com.dorm.service.card.bandwidth.BandwidthService;
 import com.dorm.service.card.telephone.TelephoneCardService;
 import com.dorm.service.user.UserService;
 import com.dorm.service.user.student.StudentService;
 import com.dorm.utils.IdListUtils;
+
+import com.dorm.utils.SecurityUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
+
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,6 +57,10 @@ public class TelephoneCardController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private SecurityUtils securityUtils;
+
     @Autowired
     private BandwidthService bandwidthService;
 
@@ -88,6 +99,18 @@ public class TelephoneCardController {
             TelephoneCardVO telephoneCard = TelephoneCardVO.valueOf(telephoneCardPO, studentPO, userPO);
             telephoneCards.add(telephoneCard);
         }
+
+        // 如果是学生，筛选出自己的
+        UserVO userVO = securityUtils.getCurrentUser();
+        if (userVO.getRole() == UserRoles.STUDENT) {
+            StudentPO studentPO = studentService.getOne(new QueryWrapper<StudentPO>().eq("user_id", userVO.getId()));
+            if (studentPO != null) {
+                telephoneCards = telephoneCards.stream().filter(i -> i.getStudentId().equals(studentPO.getId())).toList();
+            } else {
+                telephoneCards = new ArrayList<>();
+            }
+        }
+
         PageInfo<TelephoneCardVO> pageInfo = new PageInfo<>(telephoneCards);
         model.addAttribute("pageInfo", pageInfo);
 

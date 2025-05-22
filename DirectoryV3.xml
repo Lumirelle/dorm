@@ -9,4 +9,6 @@
          title="统计数据（首页）"/>
    <tree path="/src/main/java/com/dorm/controller/dorm/access"
          title="出入管理"/>
+     <tree path="/src/main/java/com/dorm/controller/dorm/ranking" title="评分"/>
+   <tree path="/src/main/resources/templates/ranking" title="评分"/>
  </trees>

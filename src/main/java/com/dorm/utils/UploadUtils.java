@@ -18,6 +18,7 @@ public class UploadUtils {
         // 确保上传路径文件夹存在
         File uploadFolder = new File(uploadLocation);
         if (!uploadFolder.exists()) {
+            //使用 `mkdirs` 方法创建目录
             uploadFolder.mkdirs();
         }
 

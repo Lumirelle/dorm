@@ -88,6 +88,7 @@ public class MoveController {
         if (pageSize < 0) {
             pageSize = 15;
         }
+
         List<MovePO> movePOList;
         try (Page<MovePO> ignored = PageHelper.startPage(pageNum, pageSize)) {
             if (Strings.isNotBlank(queryParams.getSearchKey())) {
@@ -101,12 +102,13 @@ public class MoveController {
         // 返回搬迁数据
         List<MoveVO> moves = new ArrayList<>();
         for (MovePO movePO : movePOList) {
+            // 用 movePO 里的 studentId，从 student service 获取一个 studentPO
             StudentPO studentPO = studentService.getById(movePO.getStudentId());
             DormPO fromDormPO = dormService.getById(movePO.getFromDormId());
             DormPO toDormPO = dormService.getById(movePO.getToDormId());
             // 构造 MoveVO 信息
-            MoveVO student = MoveVO.valueOf(movePO, studentPO, fromDormPO, toDormPO);
-            moves.add(student);
+            MoveVO move = MoveVO.valueOf(movePO, studentPO, fromDormPO, toDormPO);
+            moves.add(move);
         }
 
         // 如果是学生，筛选出自己的搬迁申请
@@ -140,6 +142,7 @@ public class MoveController {
                 StudentVO student = StudentVO.valueOf(studentPO1, dormPO);
                 students.add(student);
             }
+            //变量重命名，返回给前端
             model.addAttribute("students", students);
         } else if (user.getRole() == UserRoles.STUDENT) {
             model.addAttribute("userStudent", userStudent);
@@ -154,6 +157,7 @@ public class MoveController {
     @RequestMapping("/api/move/add")
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     public String addMove(
+        //校验
         @ModelAttribute @Validated AddMoveDTO moveDTO,
         BindingResult bindingResult,
         @RequestParam MultipartFile file,
@@ -161,13 +165,13 @@ public class MoveController {
     ) {
         String url = "redirect:/move/list";
 
-        // 基本参数检验
+        // 检验搬迁类型不能为空
         if (bindingResult.hasErrors() && bindingResult.getFieldError() != null) {
             redirectAttributes.addFlashAttribute("msg", bindingResult.getFieldError().getDefaultMessage());
             return url;
         }
 
-        // 学生 ID 检验
+        // 检验学生ID是否存在
         StudentPO studentPO = studentService.getById(moveDTO.getStudentId());
         if (studentPO == null) {
             redirectAttributes.addFlashAttribute("msg", "学生 ID 不存在");
@@ -175,6 +179,7 @@ public class MoveController {
         }
 
         // 如果学生有未结束的搬迁记录，则不能再提交新的搬迁申请
+        //如果学生有搬迁状态不是通过、拒绝和取消，就不能申请搬迁
         List<MovePO> studentMoves = moveService.list(new QueryWrapper<>(MovePO.class).eq(
             "student_id", moveDTO.getStudentId()));
         if (studentMoves.stream()
@@ -183,9 +188,19 @@ public class MoveController {
             return url;
         }
 
-        // 宿舍 ID 检验（）
+        // 宿舍 ID 检验（来源和迁往宿舍 ID 是否相同）
         if (Objects.equals(studentPO.getDormId(), moveDTO.getToDormId())) {
             redirectAttributes.addFlashAttribute("msg", "来源和迁往宿舍 ID 不能相同");
+            return url;
+        }
+
+        // 去往的宿舍存不存在，和是不是满人了
+        DormPO toDormPO = dormService.getById(moveDTO.getToDormId());
+        if (toDormPO == null) {
+            redirectAttributes.addFlashAttribute("msg", "迁往的宿舍不存在");
+            return url;
+        } else if (toDormPO.getStatus() == DormStatus.FULL) {
+            redirectAttributes.addFlashAttribute("msg", "迁往的宿舍已满员");
             return url;
         }
 
@@ -200,7 +215,7 @@ public class MoveController {
             movePO.setCreateTime(new DateTime());
             moveService.save(movePO);
         } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("msg", "上传图片失败");
+            redirectAttributes.addFlashAttribute("msg", "上传文件失败");
             return url;
         }
 
@@ -305,7 +320,6 @@ public class MoveController {
                 fromDorm.decreaseSetting();
                 fromDorm.setStatus(DormStatus.FREE);
                 dormService.updateById(fromDorm);
-                log.info("学生搬迁存在来源宿舍，ID： {}。宿舍人数减少，当前人数：{}", fromDorm.getId(), fromDorm.getSetting());
             }
 
             // 更新迁往宿舍状态
@@ -316,7 +330,6 @@ public class MoveController {
                     toDorm.setStatus(DormStatus.FULL);
                 }
                 dormService.updateById(toDorm);
-                log.info("学生搬迁存在去往宿舍，ID： {}。宿舍人数增加，当前人数：{}", toDorm.getId(), toDorm.getSetting());
             }
 
             // 更新学生状态
@@ -324,9 +337,6 @@ public class MoveController {
             uwStudent.eq("id", movePO.getStudentId());
             uwStudent.set("dorm_id", movePO.getToDormId());
             studentService.update(uwStudent);
-
-            StudentPO updateResult = studentService.getById(movePO.getStudentId());
-            log.info("学生搬迁成功，更新学生宿舍 ID： {} -> {}", movePO.getFromDormId(), updateResult.getDormId());
         }
 
         return url;
@@ -426,6 +436,7 @@ public class MoveController {
     @RequestMapping("/api/move/batchAgree")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public String batchAgree(String idList) {
+        // "1,2,3,4" -> [1, 2, 3, 4]
         List<Integer> list = IdListUtils.convertToIntegerList(idList);
 
         if (moveService.isAnyIdNotExist(list)) {
@@ -591,7 +602,7 @@ public class MoveController {
 
         boolean flag = true;
         for (MovePO movePO : movePOList) {
-            // 取消搬迁
+            // 拒绝搬迁
             movePO.setStatus(MoveStatus.REJECT);
             movePO.setUpdateTime(new DateTime());
             flag = flag & moveService.updateById(movePO);

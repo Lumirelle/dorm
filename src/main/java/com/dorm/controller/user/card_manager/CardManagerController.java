@@ -66,7 +66,8 @@ public class CardManagerController {
         try (Page<CardManagerPO> ignored = PageHelper.startPage(pageNum, pageSize)) {
             QueryWrapper<CardManagerPO> qw = new QueryWrapper<>();
             if (Strings.isNotBlank(cardManagerDTO.getNoOrName())) {
-                qw.like("no", cardManagerDTO.getNoOrName()).or().like("name", cardManagerDTO.getNoOrName());
+                qw.like("no", cardManagerDTO.getNoOrName())
+                    .or().like("name", cardManagerDTO.getNoOrName());
             }
             cardManagerPOList = cardManagerService.list(qw);
         }

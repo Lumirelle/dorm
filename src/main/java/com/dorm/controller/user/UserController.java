@@ -221,7 +221,11 @@ public class UserController {
             // 类似
             uw.set("email", userDTO.getEmail());
             uw.set("phone", userDTO.getPhone());
-            uw.set(avatar != null && !avatar.isEmpty(), "avatar", uploadUtils.uploadFile(avatar));
+            uw.set(
+                avatar != null && !avatar.isEmpty(),
+                "avatar",
+                uploadUtils.uploadFile(avatar)
+            );
             userService.update(uw);
 
             // 更新 session 中的用户信息

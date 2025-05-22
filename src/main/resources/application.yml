@@ -18,7 +18,7 @@ spring:
     prefix: classpath:/templates/
     suffix: .html
 #     cache false for hmr
-    cache: false
+#    cache: false
   web:
     resources:
       static-locations: classpath:/static/,classpath:/static/assets/,classpath:/public/,classpath:/resources/,classpath:/META-INF/resource/,file:${location}
@@ -27,11 +27,11 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   # devtools for hmr
-  devtools:
-    restart:
-      enabled: true
-    livereload:
-      enabled: true
+#  devtools:
+#    restart:
+#      enabled: true
+#    livereload:
+#      enabled: true
 
 mybatis-plus:
   configuration:

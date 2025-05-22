@@ -38,47 +38,55 @@ public class SecurityConfig {
             UsernamePasswordAuthenticationFilter.class
         );
 
+        // 请求的（登录）认证配置，控制哪些访问地址可以不登陆，哪些要登陆
         http.authorizeHttpRequests(customizer -> customizer
-                // 放行接口
-                .requestMatchers("/login", "/register", "/api/register", "/api/all-in-one-card/consume-self")
-                .permitAll()
-                // 放行静态资源
-                .requestMatchers("/css/**", "/icons/**", "/images/**", "/js/**", "/vendor/**")
-                .permitAll()
-                // 其他请求需要认证
-                .anyRequest()
-                .authenticated()
-            )
-            // 登录由 spring security 实现，不需要自己实现接口 /api/login
-            .formLogin(customizer -> customizer
-                .loginPage("/login")
-                .loginProcessingUrl("/api/login")
-                // 登录成功
-                .defaultSuccessUrl("/home")
-                // 登录失败
-                .failureHandler((request, response, exception) -> {
-                    String errorMsg;
-                    if (exception instanceof BadCredentialsException) {
-                        errorMsg = "用户名或密码错误";
-                    } else if (exception instanceof DisabledException) {
-                        errorMsg = "账户已禁用";
-                    } else {
-                        errorMsg = "登录失败";
-                    }
+            // permitAll -> 允许不登陆就访问
+            .requestMatchers("/login", "/register", "/api/register", "/api/all-in-one-card/consume-self")
+            .permitAll()
+            // 这个是图片等等的前端的东西，也允许
+            .requestMatchers("/css/**", "/icons/**", "/images/**", "/js/**", "/vendor/**")
+            .permitAll()
+            // authenticated -> 需要登录的。其他请求需要登录！
+            .anyRequest()
+            .authenticated()
+        );
 
-                    // 将错误信息存储在session中
-                    // 设置一个标志表示这是重定向后的消息
-                    request.getSession().setAttribute("msg", errorMsg);
-                    request.getSession()
-                        .setAttribute("isRedirectMessage", true);
+        // 登录由 spring security 实现，不需要自己实现接口 /api/login
+        http.formLogin(customizer -> customizer
+            // 登陆页面的地址
+            .loginPage("/login")
+            // 实现登录的地址，主要是设置了之后，前端要访问这个地址来登录
+            .loginProcessingUrl("/api/login")
+            // 登录成功之后，去往的地址
+            .defaultSuccessUrl("/home")
+            // 登录失败的处理
+            .failureHandler((request, response, exception) -> {
+                String errorMsg;
+                if (exception instanceof BadCredentialsException) {
+                    errorMsg = "用户名或密码错误";
+                } else if (exception instanceof DisabledException) {
+                    errorMsg = "账户已禁用";
+                } else {
+                    errorMsg = "登录失败";
+                }
 
-                    // 将错误信息传递到登录页面
-                    response.sendRedirect("/login");
-                }))
-            // 退出登录也是一样
-            .logout(customizer -> customizer
-                .logoutUrl("/api/logout")
-                .logoutSuccessUrl("/login"));
+                // 将错误信息存储在session中
+                // 设置一个标志表示这是重定向后的消息
+                request.getSession().setAttribute("msg", errorMsg);
+                request.getSession()
+                    .setAttribute("isRedirectMessage", true);
+
+                // 将错误信息传递到登录页面
+                response.sendRedirect("/login");
+            }));
+
+        // 退出登录也是一样
+        http.logout(customizer -> customizer
+            // 设置了之后，前端要访问这个地址来退出登录
+            .logoutUrl("/api/logout")
+            // 退出登录成功之后，去往的地址
+            .logoutSuccessUrl("/login"));
+
         return http.build();
     }
 

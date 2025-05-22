@@ -64,31 +64,7 @@
                   <div class="header-title"></div>
                 </div>
                 <ul class="navbar-nav header-right">
-                  <li class="nav-item">
-                    <div class="input-group search-area me-3">
-                      <input type="text" class="form-control" placeholder="Search" />
-                      <span class="input-group-text"
-                        ><a href="javascript:void(0)">
-                          <svg
-                            class="me-3 mb-1 user-search"
-                            width="15"
-                            height="15"
-                            viewBox="0 0 18 18"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M8.625 16.3125C4.3875 16.3125 0.9375 12.8625 0.9375 8.625C0.9375 4.3875 4.3875 0.9375 8.625 0.9375C12.8625 0.9375 16.3125 4.3875 16.3125 8.625C16.3125 12.8625 12.8625 16.3125 8.625 16.3125ZM8.625 2.0625C5.0025 2.0625 2.0625 5.01 2.0625 8.625C2.0625 12.24 5.0025 15.1875 8.625 15.1875C12.2475 15.1875 15.1875 12.24 15.1875 8.625C15.1875 5.01 12.2475 2.0625 8.625 2.0625Z"
-                              fill="#2696FD"
-                            />
-                            <path
-                              d="M16.5001 17.0626C16.3576 17.0626 16.2151 17.0101 16.1026 16.8976L14.6026 15.3976C14.3851 15.1801 14.3851 14.8201 14.6026 14.6026C14.8201 14.3851 15.1801 14.3851 15.3976 14.6026L16.8976 16.1026C17.1151 16.3201 17.1151 16.6801 16.8976 16.8976C16.7851 17.0101 16.6426 17.0626 16.5001 17.0626Z"
-                              fill="var(--primary)"
-                            />
-                          </svg> </a
-                      ></span>
-                    </div>
-                  </li>
+
                   <li class="nav-item dropdown notification_dropdown">
                     <a class="nav-link" href="javascript:void(0);" data-bs-toggle="dropdown">
                       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -280,8 +256,37 @@
                           </div>
                         </form>
 
-                        <div class="invoice-btn">
-                          <!-- Button trigger modal -->
+                          <!-- 学生没有宿舍 -->
+                        <div th:if="${session.user.role.name eq 'STUDENT' and userDorm eq null}" class="invoice-btn">
+                          <a
+                            sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
+                            type="button"
+                            class="btn btn-primary noUserDormButton"
+                          >
+                            <span sec:authorize="hasRole('ADMIN')">添加报修</span>
+                            <span sec:authorize="hasRole('STUDENT')">申请报修</span>
+                            <svg
+                              width="22"
+                              height="22"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12 3C7.05 3 3 7.05 3 12C3 16.95 7.05 21 12 21C16.95 21 21 16.95 21 12C21 7.05 16.95 3 12 3ZM12 19.125C8.1 19.125 4.875 15.9 4.875 12C4.875 8.1 8.1 4.875 12 4.875C15.9 4.875 19.125 8.1 19.125 12C19.125 15.9 15.9 19.125 12 19.125Z"
+                                fill="#FCFCFC"
+                              />
+                              <path
+                                d="M16.3498 11.0251H12.9748V7.65009C12.9748 7.12509 12.5248 6.67509 11.9998 6.67509C11.4748 6.67509 11.0248 7.12509 11.0248 7.65009V11.0251H7.6498C7.1248 11.0251 6.6748 11.4751 6.6748 12.0001C6.6748 12.5251 7.1248 12.9751 7.6498 12.9751H11.0248V16.3501C11.0248 16.8751 11.4748 17.3251 11.9998 17.3251C12.5248 17.3251 12.9748 16.8751 12.9748 16.3501V12.9751H16.3498C16.8748 12.9751 17.3248 12.5251 17.3248 12.0001C17.3248 11.4751 16.8748 11.0251 16.3498 11.0251Z"
+                                fill="#FCFCFC"
+                              />
+                            </svg>
+                          </a>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-primary noUserDormButton" type="button">批量选择</button>
+                          <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-danger noUserDormButton" type="button">批量撤销</button>
+                        </div>
+                          <!-- 学生有宿舍 -->
+                        <div th:if="${session.user.role.name ne 'STUDENT' or userDorm ne null}" class="invoice-btn">
                           <a
                             sec:authorize="hasAnyRole('ADMIN', 'STUDENT')"
                             type="button"
@@ -308,7 +313,6 @@
                               />
                             </svg>
                           </a>
-
                           <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-primary" type="button" id="selectAll">批量选择</button>
                           <button sec:authorize="hasAnyRole('ADMIN', 'STUDENT')" class="btn btn-danger" type="button" id="batchDelete">批量撤销</button>
                         </div>
@@ -449,7 +453,7 @@
       <!--** Main wrapper end **-->
 
       <!-- Modal -->
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div th:if="${session.user.role.name ne 'STUDENT' or userDorm ne null}" class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <form enctype="multipart/form-data" method="post" th:action="@{/api/fix/add}">
             <div class="modal-content">
@@ -527,6 +531,10 @@
       <!-- 批量删除 -->
       <script>
         $(function () {
+          $('.noUserDormButton').click(function () {
+            alert('用户没有自己的宿舍，请联系管理员或宿管添加！')
+          })
+
           $('#selectAll').click(function () {
             $('input[name=chkHistory]').prop('checked', !$('input[name=chkHistory]').prop('checked'))
           })

@@ -106,7 +106,11 @@ public class AllInOneCardController {
         UserVO userVO = securityUtils.getCurrentUser();
         if (userVO.getRole() == UserRoles.STUDENT) {
             StudentPO studentPO = studentService.getOne(new QueryWrapper<StudentPO>().eq("user_id", userVO.getId()));
-            allInOneCards = allInOneCards.stream().filter(i -> i.getStudentId().equals(studentPO.getId())).toList();
+            if (studentPO != null) {
+                allInOneCards = allInOneCards.stream().filter(i -> i.getStudentId().equals(studentPO.getId())).toList();
+            } else {
+                allInOneCards = new ArrayList<>();
+            }
         }
 
         PageInfo<AllInOneCardVO> pageInfo = new PageInfo<>(allInOneCards);
@@ -301,6 +305,7 @@ public class AllInOneCardController {
     }
 
     @RequestMapping("/api/all-in-one-card/consume-self")
+    @PreAuthorize("hasAnyRole('STUDENT')")
     public String consumeAllInOneCardSelf(
         @RequestParam Integer id,
         @RequestParam BigDecimal amount,
@@ -362,7 +367,6 @@ public class AllInOneCardController {
         }
 
         allInOneCardPO.setStatus(AllInOneCardStatus.WITHDRAW);
-
         allInOneCardService.updateById(allInOneCardPO);
 
         return url;
@@ -383,7 +387,6 @@ public class AllInOneCardController {
             }
 
             allInOneCardPO.setStatus(AllInOneCardStatus.WITHDRAW);
-
             allInOneCardService.updateById(allInOneCardPO);
         }
 

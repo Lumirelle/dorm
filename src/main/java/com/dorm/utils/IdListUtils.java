@@ -11,6 +11,7 @@ public class IdListUtils {
         if (idListStr == null || idListStr.isEmpty()) {
             return new ArrayList<>();
         }
+        // “1,2,3” -> [1,2,3]
         String[] ids = idListStr.split(",");
         List<Integer> idList = new ArrayList<>();
         for (String id : ids) {

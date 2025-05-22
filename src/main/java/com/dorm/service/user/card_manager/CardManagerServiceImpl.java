@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CardManagerServiceImpl extends ServiceImpl<CardManagerMapper, CardManagerPO> implements CardManagerService {
 
+    //编号是否存在
     @Override
     public boolean isNoExist(String no) {
         QueryWrapper<CardManagerPO> qw = new QueryWrapper<>();

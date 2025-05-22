@@ -66,7 +66,7 @@ public class StudentController {
     public String showStudentListPage(
         @RequestParam(name = "pageNum", defaultValue = "1") Integer pageNum,
         @RequestParam(name = "pageSize", defaultValue = "15") Integer pageSize,
-        QueryStudentDTO studentDTO,
+        QueryStudentDTO queryParams,
         Model model
     ) {
         // 分页
@@ -83,10 +83,10 @@ public class StudentController {
         List<StudentPO> studentPOList;
         try (Page<StudentPO> ignored = PageHelper.startPage(pageNum, pageSize)) {
             QueryWrapper<StudentPO> qw = new QueryWrapper<>();
-            if (Strings.isNotBlank(studentDTO.getNoOrName())) {
-                qw.like("no", studentDTO.getNoOrName())
+            if (Strings.isNotBlank(queryParams.getNoOrName())) {
+                qw.like("no", queryParams.getNoOrName())
                     .or()
-                    .like("name", studentDTO.getNoOrName());
+                    .like("name", queryParams.getNoOrName());
             }
             studentPOList = studentService.list(qw);
         }
@@ -106,7 +106,7 @@ public class StudentController {
         model.addAttribute("pageInfo", pageInfo);
 
         // 回显查询条件
-        model.addAttribute("noOrName", studentDTO.getNoOrName());
+        model.addAttribute("noOrName", queryParams.getNoOrName());
 
         // FIXME: 额外的学生用户信息和宿舍信息，用来在添加学生时选择
         List<UserVO> users = UserVO.valuesOf(userService.listUnboundStudentUsers());
@@ -217,14 +217,6 @@ public class StudentController {
         List<UserVO> users = UserVO.valuesOf(userPOList);
         model.addAttribute("users", users);
 
-        List<DormPO> dormPOList = dormService.listFreeDorms();
-        // 还要添加当前学生的宿舍信息
-        if (dormPO != null) {
-            dormPOList.add(dormPO);
-        }
-        List<DormVO> dorms = DormVO.valuesOf(dormPOList);
-        model.addAttribute("dorms", dorms);
-
         return "student/update";
     }
 
@@ -270,19 +262,6 @@ public class StudentController {
                 return errorUrl;
             }
         }
-        // 检查新关联的宿舍是否存在 & 宿舍是否已满
-        DormPO oldDorm = dormService.getById(oldStudent.getDormId());
-        DormPO newDorm = null;
-        if (studentDTO.getDormId() != null) {
-            newDorm = dormService.getById(studentDTO.getDormId());
-            if (newDorm == null) {
-                redirectAttributes.addFlashAttribute("msg", "宿舍不存在");
-                return errorUrl;
-            } else if (!Objects.equals(oldDorm, newDorm) && newDorm.getStatus() != DormStatus.FREE) {
-                redirectAttributes.addFlashAttribute("msg", "宿舍已满");
-                return errorUrl;
-            }
-        }
 
         // 更新学生信息
         UpdateWrapper<StudentPO> uw = new UpdateWrapper<>();
@@ -293,26 +272,8 @@ public class StudentController {
         uw.set("college", studentDTO.getCollege());
         uw.set("major", studentDTO.getMajor());
         uw.set("user_id", studentDTO.getUserId());
-        uw.set("dorm_id", studentDTO.getDormId());
 
         studentService.update(uw);
-
-        // 更新宿舍状态
-        if (!Objects.equals(oldStudent.getDormId(), studentDTO.getDormId())) {
-            if (newDorm != null) {
-                newDorm.increaseSetting();
-                // 如果宿舍已满
-                if (Objects.equals(newDorm.getSetting(), newDorm.getPeople())) {
-                    newDorm.setStatus(DormStatus.FULL);
-                }
-                dormService.updateById(newDorm);
-            }
-            if (oldDorm != null) {
-                oldDorm.decreaseSetting();
-                oldDorm.setStatus(DormStatus.FREE);
-                dormService.updateById(oldDorm);
-            }
-        }
 
         return successUrl;
     }

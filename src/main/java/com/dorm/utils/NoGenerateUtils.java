@@ -13,6 +13,7 @@ public class NoGenerateUtils {
             throw new IllegalArgumentException("长度必须大于前缀长度 + 时间戳长度");
         }
 
+        // 格式化当前时间
         // 生成时间戳部分
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String timestamp = sdf.format(new Date());

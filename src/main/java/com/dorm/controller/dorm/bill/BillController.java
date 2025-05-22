@@ -90,6 +90,7 @@ public class BillController {
             bills = bills.stream().filter(i -> i.getDormId().equals(studentPO.getDormId())).toList();
         }
 
+        //把账单转成pageinfo
         PageInfo<BillVO> pageInfo = new PageInfo<>(bills);
         model.addAttribute("pageInfo", pageInfo);
 

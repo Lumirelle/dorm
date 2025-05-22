@@ -30,7 +30,4 @@ public class UpdateStudentDTO {
     @NotNull(message = "用户不能为空")
     private Integer userId;
 
-    // 和宿舍关联
-    @NotNull(message = "用户不能为空")
-    private Integer dormId;
 }

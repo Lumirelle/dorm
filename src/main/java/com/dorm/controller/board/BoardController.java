@@ -36,6 +36,8 @@ public class BoardController {
     private SecurityUtils securityUtils;
 
     @RequestMapping("/board/list")
+    // 数据库中获取根目录下的所有板块信息，并将其转换为视图对象
+    // 然后将这些对象添加到模型中，最后返回一个视图名称
     public String listBoard(Model model) {
         List<BoardPO> boardPOList = boardService.listRootBoards();
         List<BoardVO> boards = new ArrayList<>();
@@ -55,6 +57,7 @@ public class BoardController {
         // 检查留言是否存在
         BoardPO boardPO = boardService.getById(id);
         if (boardPO == null) {
+            //在重定向请求中添加一个Flash属性，键为"msg"，值为"留言不存在"
             redirectAttributes.addFlashAttribute("msg", "留言不存在");
             return notExistUrl;
         }
@@ -67,29 +70,36 @@ public class BoardController {
         // 获取留言的用户信息
         UserPO userPO = userService.getById(boardPO.getUserId());
 
-        // 处理 BoardPO -> BoardVO
         BoardVO board = BoardVO.valueOf(boardPO, userPO);
+
+        List<BoardVO> children = new ArrayList<>();
+
         // 查询子留言（留言最多有三层）
         List<BoardPO> childrenBoardPOList = boardService.listChildrenBoardsById(board.getId());
-        List<BoardVO> children = new ArrayList<>();
+
+        // 遍历子留言，查询每个子留言的子留言
         for (BoardPO child : childrenBoardPOList) {
-            // 转换成 BoardVO
+            // 把我们遍历的 po 转换成 BoardVO
             UserPO childUserPO = userService.getById(child.getUserId());
             BoardVO childBoard = BoardVO.valueOf(child, childUserPO);
 
             // 查询子留言的子留言
             List<BoardPO> grandChildrenBoardPOList = boardService.listChildrenBoardsById(child.getId());
+            // PO -> VO
             List<BoardVO> grandChildren = new ArrayList<>();
             for (BoardPO grandChild : grandChildrenBoardPOList) {
                 UserPO grandChildUserPO = userService.getById(grandChild.getUserId());
                 BoardVO grandChildBoard = BoardVO.valueOf(grandChild, grandChildUserPO);
                 grandChildren.add(grandChildBoard);
             }
-            // 设置子留言的子留言
+
+            // 孙子设置到儿子上
             childBoard.setChildren(grandChildren);
 
             children.add(childBoard);
         }
+
+        // 儿子设置到父亲上
         board.setChildren(children);
 
         model.addAttribute("board", board);
@@ -118,18 +128,18 @@ public class BoardController {
             return url;
         }
 
-        // 父留言ID和根留言ID必须同时指定或同时不指定
+        // 父留言ID和根留言ID必须同时为空，或同时不为空
         if (!Objects.equals(boardDTO.getParentBoardId() == null, boardDTO.getRootBoardId() == null)) {
             redirectAttributes.addFlashAttribute("msg", "父留言ID和根留言ID必须同时指定或同时不指定");
         }
         // 如果指定了父留言ID，检查父留言是否存在
+        // 如果父留言的父留言和它的根留言不同，表明父留言已经是第三层留言，不能继续回复
         if (boardDTO.getParentBoardId() != null) {
             BoardPO parentBoard = boardService.getById(boardDTO.getParentBoardId());
             if (parentBoard == null) {
                 redirectAttributes.addFlashAttribute("msg", "父留言不存在");
                 return url;
             } else if (!Objects.equals(parentBoard.getParentBoardId(), parentBoard.getRootBoardId())) {
-                // 如果父留言的父留言和它的根留言不同，表明父留言已经是第三层留言，不能继续回复
                 redirectAttributes.addFlashAttribute("msg", "父留言已经是第三层留言，不能继续回复");
                 return url;
             }

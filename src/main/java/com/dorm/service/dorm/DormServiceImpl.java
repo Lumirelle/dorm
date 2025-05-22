@@ -34,6 +34,7 @@ public class DormServiceImpl extends ServiceImpl<DormMapper, DormPO> implements 
 
     @Override
     public Set<String> listUniqueBuildings() {
+        //toset()实现去重
         return list().stream().map(DormPO::getBuilding).collect(Collectors.toSet());
     }
 

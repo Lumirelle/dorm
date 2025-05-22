@@ -22,7 +22,7 @@ public class BeanConvertUtils {
      */
     public static <T> T copyProperties(T target, Object source) {
         if (source == null || target == null) {
-            return target;
+            return null;
         }
         BeanUtils.copyProperties(source, target);
         return target;
@@ -76,6 +76,8 @@ public class BeanConvertUtils {
         }
 
         try {
+            // instance 实例 = object 对象
+            // new instance = 新建对象
             T target = targetClass.getDeclaredConstructor().newInstance();
             return copyProperties(target, source);
         } catch (Exception e) {
